@@ -197,6 +197,9 @@
 
   const yukle=()=>{
     film.poster=p.poster||'';
+    // İlk boyamada poster + metadata ile açılır; medya gövdesi yalnızca
+    // seçilen responsive kaynak için yüklenir.
+    film.preload='metadata';
     film.src=p.src;
     film.load();
   };

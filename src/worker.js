@@ -2488,19 +2488,14 @@ export default { async scheduled(controller, env, ctx){
 /* Politika yola göre kurulur, çünkü sitenin iki ayrı ihtiyacı var.
 
    Kamuya açık sayfalar satır içi script kullanmıyor, bu yüzden orada
-   script-src 'self' kalıyor. Yönetici paneli ise satır içi script ve
-   on* öznitelikleriyle yazılmış; ona aynı kuralı uygularsak panel
-   sessizce çalışmaz hale gelir, o yüzden yalnızca /admin/ altında
-   'unsafe-inline' açılıyor.
+   script-src 'self' kalıyor. Yönetici ve sosyal stüdyo panelleri ise
+   mevcut inline uygulama kodu nedeniyle ayrı bir CSP dalı kullanıyor.
 
    i.ytimg.com haber sayfalarındaki video kapak görselleri için,
    youtube-nocookie.com ise tıklayınca oluşturulan gömülü oynatıcı için
    gerekli. İkisi de src/news-page.js içinde kullanılıyor. */
-/* CSP notu:
-   Anasayfa ve dinamik haber şablonu erişilebilirlik ve küçük paket boyutu
-   için satır içi, güvenilir uygulama betikleri kullanır. Bu nedenle public
-   sayfalarda script-src 'unsafe-inline' açıkça tanımlıdır. Kullanıcı üretimli
-   HTML ise Worker tarafında kaçışlanır; admin API oturum korumalıdır. */
+/* CSP notu: Kullanıcı üretimli HTML Worker tarafında kaçışlanır; admin API
+   oturum korumalıdır. Public sayfalarda inline script istisnası açılmaz. */
 function nonceUret() {
   const b = new Uint8Array(16);
   crypto.getRandomValues(b);
@@ -2517,20 +2512,22 @@ const CF_ANALYTICS_BETIK = 'https://static.cloudflareinsights.com';
 const CF_ANALYTICS_UC = 'https://cloudflareinsights.com';
 
 function cspKur(pathname, nonce) {
-  const panel = pathname.startsWith('/admin');
+  const panel = pathname.startsWith('/admin') || pathname.startsWith('/social-studio');
+  const scriptInline = panel ? " 'unsafe-inline'" : '';
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline' ${CF_ANALYTICS_BETIK} https://tracker.metricool.com`,
+    `script-src 'self'${scriptInline} ${CF_ANALYTICS_BETIK} https://tracker.metricool.com`,
     "style-src 'self' 'unsafe-inline'",
     "font-src 'self'",
-    "img-src 'self' data: blob: https://i.ytimg.com https://tracker.metricool.com",
-    "media-src 'self' blob: https://cdn.jsdelivr.net",
-    "frame-src https://www.youtube-nocookie.com",
+    "img-src 'self' data: blob: https://i.ytimg.com https://tracker.metricool.com https://assets.btmedya.com.tr",
+    "media-src 'self' blob: https://cdn.jsdelivr.net https://assets.btmedya.com.tr",
+    "frame-src https://www.youtube-nocookie.com https://www.youtube.com",
     `connect-src 'self' ${CF_ANALYTICS_UC} https://tracker.metricool.com`,
     "form-action 'self'",
     "frame-ancestors 'self'",
     "base-uri 'self'",
     "object-src 'none'",
+    "worker-src 'self' blob:",
     "upgrade-insecure-requests"
   ].join('; ');
 }

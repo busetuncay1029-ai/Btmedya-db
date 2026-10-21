@@ -316,7 +316,9 @@ jobs:
           echo "SMOKE home content-type: $home_type"
           echo "$home_type" | grep -qi "^text/html"
           live_markers=(
-            "name=\"btmedya-live-revision\" content=\"2026-10-06-mobile-repair1\""
+            "name=\"btmedya-live-revision\" content=\"2026-10-21-hero-csp-h1-repair1\""
+            "data-genis=\"/assets/media/web/btmedya-giris-v7-ses-genis.mp4?v=20261014-1\""
+            "<h1 id=\"hero-paths-title\">BALIKESİR'DE"
             "GERÇEK ÇEKİM"
             "AI ÜRETİMİ"
             "Kaynak Masası"
