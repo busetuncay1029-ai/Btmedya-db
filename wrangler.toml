@@ -57,6 +57,8 @@ database_id = "94a980cd-62c5-4c29-b7fc-40f96ab665e4"
 MEDIA_PUBLIC_TTL = "86400"
 # BTMEDYA admin login user. This is a non-secret identifier; the password remains a Worker Secret.
 ADMIN_USERNAME = "busetuncay74@gmail.com"
+# Gmail bridge yalnız bu posta kutusundan gelen, Balıkesir ilgili adayları kabul eder.
+GMAIL_MAILBOX = "busetuncay74@gmail.com"
 # Metricool Brand 6858384'te 29 Eylül 2026 itibarıyla doğrulanan yayın ağları.
 # Bu değişiklik aynı zamanda sync-worker-secrets workflow'unun mevcut GitHub -> Cloudflare secret zincirini yeniden çalıştırır.
 # Yeni bir ağ Metricool Connections'a bağlandığında bu liste güncellenir.
@@ -67,6 +69,8 @@ METRICOOL_PERSONAL_CONNECTED_NETWORKS = ""
 # METRICOOL_USER_TOKEN ister). Burada durduğu için GitHub'a yalnız anahtar
 # eklemek yeter. Secret adı METRICOOL_USER_ID ile çakışmasın diye farklı ad.
 METRICOOL_KULLANICI_NO = "5278969"
+# Non-secret metadata read from the connected Metricool BTMEDYA brand.
+# This does not change the primary publisher; the native direct OAuth route remains active.
 METRICOOL_USER_ID = "5278969"
 METRICOOL_BRAND_ID = "6858384"
 METRICOOL_CREATOR_EMAIL = "busetuncay74@gmail.com"
@@ -93,7 +97,8 @@ required = [
 #   AI_READ_TOKEN         -> salt-okur AI erişim token'ı
 #   RESEND_API_KEY        -> Resend e-posta bildirim API anahtarı
 #   RESEND_TO             -> bildirim alıcı adresi
-#   RESEND_FROM           -> gönderici adresi
+#   RESEND_FROM           -> bildirim gönderici adresi
+#   GMAIL_INGEST_SECRET   -> imzalı Gmail bridge etkinleştirme secret'ı
 
 # Sabah Masası kategori işçisi: Worker kendi SabahYazici giriş noktasını
 # çağırır. Her kategori ayrı çağrıda çalışır; ücretsiz planın çağrı başına

@@ -31,6 +31,7 @@ import { ayarlariOku, ayarlariYaz, platformSluglari, sonrakiYuva, altyazi, varli
 import { zincirDurumu } from "./yayin-zinciri.js";
 import { kaynakKaydet, kaynakListele, kaynakGuncelle, kaynakOzeti, kaynakBaglaHaber, ensureKaynakMasasiTables } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak, sosyalTekillemeSil, ensureSosyalParmakTablosu } from "./sosyal-dedupe.js";
+import { gmailIntegrationApi } from "./gmail-ingest.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -2202,6 +2203,8 @@ export default { async scheduled(controller, env, ctx){
   }
 
   if(url.pathname.startsWith('/api/')){
+    const gmailIntegration = await gmailIntegrationApi(request, env, url, await validSession(request, oturumAnahtari(env)));
+    if(gmailIntegration) return gmailIntegration;
     const inspect = await adminPageInspectApi(request, env, url);
     if(inspect) return inspect;
     const auditGet = await adminAuditApi(request, env, url);
