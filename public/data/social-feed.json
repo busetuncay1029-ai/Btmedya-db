@@ -24,7 +24,7 @@
     {
       "key": "facebook",
       "label": "Facebook · busetuncayy10",
-      "url": "https://www.facebook.com/people/busetuncayy10/100080226545931/",
+      "url": "https://www.facebook.com/profile.php?id=100080226545931",
       "status": "verification_pending",
       "note": "Metricool Brand 6725412 Facebook bağlantısı Worker tokenı ile doğrulanacak."
     },
@@ -248,7 +248,7 @@
     "brand_id": "6858384",
     "user_id": "5278969",
     "facebook_page_id": "107923075188798",
-    "facebook_page_url": "https://www.facebook.com/people/busetuncayy10/100080226545931/",
+    "facebook_page_url": "https://www.facebook.com/profile.php?id=100080226545931",
     "networks": [
       "facebook",
       "instagram",

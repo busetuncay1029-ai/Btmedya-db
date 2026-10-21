@@ -4,7 +4,7 @@
   async function load(){
     const box=document.querySelector('#socialCommand');
     if(!box)return;
-    const names={instagram:{label:'Instagram',handle:'@btmedyajans',url:'https://www.instagram.com/btmedyajans/'},facebook:{label:'Facebook',handle:'@busetuncayy10',url:'https://www.facebook.com/people/busetuncayy10/100080226545931/'},youtube:{label:'YouTube',handle:'@BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans'},tiktok:{label:'TikTok',handle:'@btmedya1010',url:'https://www.tiktok.com/@btmedya1010'}};
+    const names={instagram:{label:'Instagram',handle:'@btmedyajans',url:'https://www.instagram.com/btmedyajans/'},facebook:{label:'Facebook',handle:'@busetuncayy10',url:'https://www.facebook.com/profile.php?id=100080226545931'},youtube:{label:'YouTube',handle:'@BTmedyaAjans',url:'https://www.youtube.com/@BTmedyaAjans'},tiktok:{label:'TikTok',handle:'@btmedya1010',url:'https://www.tiktok.com/@btmedya1010'}};
     let data=null;
     try{const r=await fetch('/api/admin/control-center',{credentials:'same-origin',cache:'no-store'});if(r.ok)data=await r.json();}catch(e){}
     const social=data?.social||{};
