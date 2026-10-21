@@ -105,7 +105,7 @@ Bu isimlerin dokümantasyonda geçmesi bağlantı kurulduğu anlamına gelmez.
 Gerekli zincir:
 
 - `deploy.yml`: ana production deploy/doğrulama
-- `production-diagnostic.yml`: periyodik ve değişiklik sonrası sağlık kontrolü
+- `worker-observability.yml`: günlük Worker issue, sağlık, SEO ve Lighthouse raporu
 - `cloudflare-control-plane.yml`: Cloudflare DNS/Email Routing denetimi; varsayılan davranış AUDIT
 - `sync-worker-secrets.yml`: Worker secret senkronizasyonu, yalnızca ihtiyaç olduğunda
 - `d1-migrations.yml`: D1 migration, yalnızca migration gerektiğinde

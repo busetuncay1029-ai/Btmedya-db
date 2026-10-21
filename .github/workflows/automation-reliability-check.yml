@@ -10,7 +10,7 @@ on:
       - "wrangler.toml"
       - ".github/workflows/d1-migrations.yml"
       - ".github/workflows/automation-reliability-check.yml"
-      - ".github/workflows/production-diagnostic.yml"
+      - ".github/workflows/worker-observability.yml"
       - "migrations/**"
       - "tools/site-os-migration-test.py"
       - "control-plane/audit-d1-schema.py"

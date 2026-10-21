@@ -1,0 +1,93 @@
+name: BTMEDYA Worker observability and live performance
+
+on:
+  schedule:
+    - cron: "35 5 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "wrangler.toml"
+      - "src/**"
+      - "public/**"
+      - "tools/worker-observability.mjs"
+      - ".github/workflows/worker-observability.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: btmedya-worker-observability
+  cancel-in-progress: true
+
+env:
+  BTMEDYA_ORIGIN: https://btmedya.com.tr
+  CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+
+jobs:
+  observe:
+    name: Daily Worker, SEO and performance report
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Generate public health and SEO report
+        run: node tools/worker-observability.mjs | tee btmedya-worker-observability.md
+
+      - name: Query Cloudflare Workers detected issues when a token is available
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_OBSERVABILITY_TOKEN || secrets.CLOUDFLARE_API_TOKEN || secrets.CLOUDFLARE_DEPLOY_TOKEN || secrets.BTMEDYA_D1 || secrets.BTMEDYA_DB1 }}
+        run: |
+          set -euo pipefail
+          api="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/workers/observability/issues/summary?service=btmedya-db"
+          if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
+            echo "WARN: Cloudflare Observability token yok; issue summary atlandı." | tee -a btmedya-worker-observability.md
+            exit 0
+          fi
+          response="$(curl -fsS --retry 2 --connect-timeout 10 --max-time 45 \
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" "$api" || true)"
+          if [ -z "$response" ]; then
+            echo "WARN: Cloudflare Observability issue summary okunamadı." | tee -a btmedya-worker-observability.md
+            exit 0
+          fi
+          echo "" >> btmedya-worker-observability.md
+          echo "## Cloudflare Workers detected issues" >> btmedya-worker-observability.md
+          echo '```json' >> btmedya-worker-observability.md
+          jq '{success, result, errors}' <<<"$response" >> btmedya-worker-observability.md || echo "$response" >> btmedya-worker-observability.md
+          echo '```' >> btmedya-worker-observability.md
+
+      - name: Run Lighthouse performance and SEO audit
+        run: |
+          npx --yes lighthouse@13.0.1 "$BTMEDYA_ORIGIN/" \
+            --only-categories=performance,seo,accessibility \
+            --output=json --output-path=./btmedya-lighthouse.json \
+            --chrome-flags="--headless --no-sandbox --disable-dev-shm-usage" \
+            --quiet --no-enable-error-reporting || echo "WARN: Lighthouse canlı denetimi başarısız; rapor diğer kontrollerle yayımlanacak."
+
+      - name: Upload daily report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: btmedya-worker-observability-${{ github.run_id }}
+          path: |
+            btmedya-worker-observability.md
+            btmedya-lighthouse.json
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Publish summary
+        if: always()
+        run: |
+          {
+            echo "## BTMEDYA günlük canlı gözlem"
+            echo ""
+            cat btmedya-worker-observability.md 2>/dev/null || true
+          } >> "$GITHUB_STEP_SUMMARY"
