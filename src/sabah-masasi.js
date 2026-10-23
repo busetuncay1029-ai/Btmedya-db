@@ -28,6 +28,7 @@ const RAPOR = 'sabah:son';
    denemede başlıklar yarım kalıyor ("Okula Uyumu"), Türkçe ekler bozuluyordu
    ("4-1'lık"). Model değişikliği kalite denetimiyle birlikte kodda yapılır. */
 const MODEL = '@cf/openai/gpt-oss-120b';
+const FALLBACK_MODEL = '@cf/openai/gpt-oss-20b';
 const VARSAYILAN = Object.freeze({
   etkin: true,
   otomatikYayin: true,
@@ -150,7 +151,8 @@ export async function sabahAyarlari(env) {
     // Güvenli, kaynak doğrulamalı içerikler otomatik yayınlanabilir; hassas,
     // tanıtım ve denetimden kalmış içerikler kategoriIsle içinde taslak kalır.
     otomatikYayin: env.BTMEDYA_AUTO_PUBLISH === 'true' || a.otomatikYayin === true,
-    model: MODEL,
+    model: env.AI_PRIMARY_MODEL || MODEL,
+    fallbackModel: env.AI_FALLBACK_MODEL || FALLBACK_MODEL,
     gunlukAzami: Math.max(1, Math.min(8, Number(a.gunlukAzami) || 8)),
     // Boş seçim "hiçbiri" değil "hepsi" sayılır: yanlışlıkla boşaltılan
     // liste sabah akışını sessizce durdurmasın.
@@ -609,6 +611,21 @@ export async function iddiaDenetimi(env, model, y, kaynakMetin) {
   }
 }
 
+function workersAiKotaHatasi(error) {
+  return /4006|daily free allocation|neurons/i.test(String(error && error.message || error));
+}
+
+async function aiCalistir(env, model, fallbackModel, payload) {
+  try {
+    return { yanit: await env.AI.run(model, payload), model };
+  } catch (error) {
+    // Fallback aynı Workers AI hesabının kotasını paylaşır. Kota dolduysa
+    // ikinci çağrı yapılmaz; içerik güvenli yeniden denemeye bırakılır.
+    if (!fallbackModel || fallbackModel === model || workersAiKotaHatasi(error)) throw error;
+    return { yanit: await env.AI.run(fallbackModel, payload), model: fallbackModel };
+  }
+}
+
 /* Yazar, üç denetimden geçirir; geçemezse sorunları modele geri verip bir
    kez daha (en fazla üç deneme) yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
    çağırandadır. */
@@ -621,12 +638,13 @@ export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
     kaynak.metin.slice(0, 9000)
   ].join('\n');
   const mesajlar = [{ role: 'system', content: yonerge(kategori) }, { role: 'user', content: girdi }];
-  let enIyi = null, sonHata = null;
+  let enIyi = null, sonHata = null, aktifModel = ayar.model || MODEL;
   for (let d = 0; d < denemeSayisi; d++) {
     let y;
     try {
-      const r = await env.AI.run(ayar.model, { messages: mesajlar, max_tokens: 6000, temperature: 0.4 });
-      const j = jsonAyikla(yanitMetni(r));
+      const ai = await aiCalistir(env, aktifModel, ayar.fallbackModel || FALLBACK_MODEL, { messages: mesajlar, max_tokens: 6000, temperature: 0.4 });
+      aktifModel = ai.model;
+      const j = jsonAyikla(yanitMetni(ai.yanit));
       if (!j || !j.baslik) throw new Error('Model geçerli JSON döndürmedi');
       y = temizle(j);
     } catch (e) { sonHata = e; continue; }
@@ -645,7 +663,7 @@ export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
     // Doğrulayıcı yalnız deterministik denetimden geçen taslağa çalışır:
     // kalan taslak zaten yeniden yazılacak, ikinci çağrı boşa gitmesin.
     if (!sorun.length) {
-      y.denetim.iddia = await iddiaDenetimi(env, ayar.model, y, kaynakMetin);
+      y.denetim.iddia = await iddiaDenetimi(env, aktifModel, y, kaynakMetin);
       if (y.denetim.iddia.hata) sorun.push(y.denetim.iddia.hata);
       for (const d of y.denetim.iddia.desteksiz) sorun.push(`kaynakla desteklenmeyen ifade: "${d.ifade}"${d.neden ? ' (' + d.neden + ')' : ''}`);
     }
