@@ -902,13 +902,18 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     // haberle aynı konuyu anlatıyorsa yayına çıkmaz; editör karar verir.
     const tekrarKonu = benzerBaslik(y.baslik, son);
     const denetimTamam = rd.gecti && ad.gecti && kalite.gecti && iddia.gecti && !tekrarKonu;
-    const yayinla = ayar.otomatikYayin && denetimTamam;
+    // Gündem, Sağlık, Ulaşım ve Asayiş içerikleri editör onayı olmadan
+    // otomatik yayımlanamaz; özellikle sağlık iddiaları kaynak denetimi
+    // tamamlanmış olsa bile insan incelemesi gerektirir.
+    const onayGerekli = ['Gündem', 'Sağlık', 'Ulaşım', 'Asayiş'].includes(kat.kategori);
+    const yayinla = ayar.otomatikYayin && denetimTamam && !onayGerekli;
     const nedenler = [
       !rd.gecti ? 'rakam: ' + rd.eksik.slice(0, 3).join(', ') : '',
       !ad.gecti ? 'özel ad: ' + ad.eksik.slice(0, 3).join(', ') : '',
       !kalite.gecti ? 'kalite: ' + kalite.sorun.slice(0, 2).join('; ') : '',
       !iddia.gecti && rd.gecti && ad.gecti && kalite.gecti ? 'iddia: ' + (iddia.hata || iddia.desteksiz.slice(0, 2).map(d => d.ifade).join('; ')) : '',
-      tekrarKonu ? 'tekrar: son 4 günde benzer başlıklı haber var' : ''
+    tekrarKonu ? 'tekrar: son 4 günde benzer başlıklı haber var' : '',
+    onayGerekli ? 'editör onayı gerekli' : ''
     ].filter(Boolean);
     Object.assign(kayit, {
       baslik: y.baslik, spot: y.spot, vurgu: y.vurgu, deneme: y.deneme,
@@ -951,7 +956,19 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     Object.assign(kayit, { slug, durum: yayinla ? 'yayinlandi' : 'taslak', gorsel: Boolean(gorsel) });
     if (yayinla) rapor.yayinlanan++; else rapor.taslak++;
   } catch (e) {
-    kayit.durum = 'hata'; kayit.not = String(e.message || e).slice(0, 200);
-    rapor.hatalar.push(kat.kategori + ': ' + kayit.not);
+    const msg = String(e && e.message || e).slice(0, 200);
+    const kotaDoldu = /4006|daily free allocation|neurons/i.test(msg);
+    kayit.durum = kotaDoldu ? 'ai-kota-bekleniyor' : 'hata';
+    kayit.not = kotaDoldu
+      ? 'Workers AI günlük nöron kotası dolu; içerik oluşturulmadı ve kota yenilendiğinde yeniden denenecek.'
+      : msg;
+    if (kotaDoldu) {
+      // Kota tükenmesi içerik hatası değildir; günlük raporu yapay biçimde
+      // hata sayısıyla şişirmeden kaydı yeniden denemeye bırak.
+      rapor.uyarilar = rapor.uyarilar || [];
+      rapor.uyarilar.push(kat.kategori + ': Workers AI kota sınırı nedeniyle yeniden denenecek');
+    } else {
+      rapor.hatalar.push(kat.kategori + ': ' + kayit.not);
+    }
   }
 }
