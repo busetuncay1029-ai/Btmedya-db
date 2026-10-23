@@ -626,6 +626,25 @@ async function aiCalistir(env, model, fallbackModel, payload) {
   }
 }
 
+async function kaynakTabanliTaslak(env, { kat, o, kaynak, kayit, rapor }) {
+  const baslik = String(kaynak.baslik || o.baslik || '').trim();
+  const paragraflar = (kaynak.paragraflar || []).map(x => String(x || '').trim()).filter(Boolean).slice(0, 6);
+  if (!baslik || paragraflar.length < 2) throw new Error('Kota fallbackı için yeterli kaynak metni yok');
+  let slug = slugUret(baslik);
+  if (await env.DB.prepare('SELECT 1 FROM news WHERE slug=?').bind(slug).first()) slug += '-' + Date.now().toString(36).slice(-4);
+  const simdi = new Date().toISOString();
+  const spot = String(kaynak.spot || paragraflar[0]).trim().slice(0, 420);
+  const govde = paragraflar.join('\n\n');
+  const not = `Workers AI kotası dolduğu için kaynak metni değiştirilmeden editör taslağı oluşturuldu. Sağlık ve hassas kategori içerikleri yayımlanamaz; editör başlık, spot, gövde ve kaynak doğrulamasını tamamlamalıdır.`;
+  await env.DB.prepare(
+    'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  ).bind(slug, baslik, spot, govde, kat.kategori, 'BTMEDYA Kaynak Fallback', `/assets/kategori-kapak/${kat.anahtar}.webp`, '', 'draft', null, o.link, kaynak.tarih || null, not, simdi).run();
+  await saveContentTaxonomy(env, 'news', slug, normalizeContentTaxonomy({}, kat.kategori));
+  await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, simdi).run();
+  Object.assign(kayit, { baslik, spot, slug, durum: 'taslak', gorsel: false, not });
+  rapor.taslak++;
+}
+
 /* Yazar, üç denetimden geçirir; geçemezse sorunları modele geri verip bir
    kez daha (en fazla üç deneme) yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
    çağırandadır. */
@@ -981,8 +1000,14 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
       ? 'Workers AI günlük nöron kotası dolu; içerik oluşturulmadı ve kota yenilendiğinde yeniden denenecek.'
       : msg;
     if (kotaDoldu) {
-      // Kota tükenmesi içerik hatası değildir; günlük raporu yapay biçimde
-      // hata sayısıyla şişirmeden kaydı yeniden denemeye bırak.
+      // Ücretsiz çözüm: AI olmadan kaynak metnini değiştirmeyen editör
+      // taslağı oluştur. Bu akış hiçbir sağlık/hassas içeriği yayımlamaz.
+      try {
+        await kaynakTabanliTaslak(env, { kat, o, kaynak, kayit, rapor });
+        return;
+      } catch (fallbackError) {
+        kayit.not += ' Kaynak fallbackı başarısız: ' + String(fallbackError && fallbackError.message || fallbackError).slice(0, 120);
+      }
       rapor.uyarilar = rapor.uyarilar || [];
       rapor.uyarilar.push(kat.kategori + ': Workers AI kota sınırı nedeniyle yeniden denenecek');
     } else {
