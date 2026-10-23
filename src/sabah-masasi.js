@@ -28,6 +28,7 @@ const RAPOR = 'sabah:son';
    denemede başlıklar yarım kalıyor ("Okula Uyumu"), Türkçe ekler bozuluyordu
    ("4-1'lık"). Model değişikliği kalite denetimiyle birlikte kodda yapılır. */
 const MODEL = '@cf/openai/gpt-oss-120b';
+const FALLBACK_MODEL = '@cf/openai/gpt-oss-20b';
 const VARSAYILAN = Object.freeze({
   etkin: true,
   otomatikYayin: true,
@@ -150,7 +151,8 @@ export async function sabahAyarlari(env) {
     // Güvenli, kaynak doğrulamalı içerikler otomatik yayınlanabilir; hassas,
     // tanıtım ve denetimden kalmış içerikler kategoriIsle içinde taslak kalır.
     otomatikYayin: env.BTMEDYA_AUTO_PUBLISH === 'true' || a.otomatikYayin === true,
-    model: MODEL,
+    model: env.AI_PRIMARY_MODEL || MODEL,
+    fallbackModel: env.AI_FALLBACK_MODEL || FALLBACK_MODEL,
     gunlukAzami: Math.max(1, Math.min(8, Number(a.gunlukAzami) || 8)),
     // Boş seçim "hiçbiri" değil "hepsi" sayılır: yanlışlıkla boşaltılan
     // liste sabah akışını sessizce durdurmasın.
@@ -609,6 +611,47 @@ export async function iddiaDenetimi(env, model, y, kaynakMetin) {
   }
 }
 
+function workersAiKotaHatasi(error) {
+  return /4006|daily free allocation|neurons/i.test(String(error && error.message || error));
+}
+
+async function aiCalistir(env, model, fallbackModel, payload) {
+  try {
+    return { yanit: await env.AI.run(model, payload), model };
+  } catch (error) {
+    // Fallback aynı Workers AI hesabının kotasını paylaşır. Kota dolduysa
+    // ikinci çağrı yapılmaz; içerik güvenli yeniden denemeye bırakılır.
+    if (!fallbackModel || fallbackModel === model || workersAiKotaHatasi(error)) throw error;
+    return { yanit: await env.AI.run(fallbackModel, payload), model: fallbackModel };
+  }
+}
+
+async function kaynakTabanliTaslak(env, { kat, o, kaynak, kayit, rapor }) {
+  const baslik = String(kaynak.baslik || o.baslik || '').trim();
+  if (!baslik || !o.link) throw new Error('Kota fallbackı için kaynak künyesi yok');
+  let slug = slugUret(baslik);
+  if (await env.DB.prepare('SELECT 1 FROM news WHERE slug=?').bind(slug).first()) slug += '-' + Date.now().toString(36).slice(-4);
+  const simdi = new Date().toISOString();
+  const spot = `Kaynak: ${String(o.kaynakAd || 'kaynak yayın').slice(0, 120)}. İçerik, editör doğrulaması ve özgün BTV yazımı bekliyor.`;
+  const govde = [
+    `Kaynak başlığı: ${baslik}`,
+    `Kaynak bağlantısı: ${o.link}`,
+    '',
+    'Editör özeti: [Kaynak incelenerek özgün biçimde yazılacak.]',
+    '5N1K kontrolü: [Kim, ne, nerede, ne zaman, nasıl ve neden bilgileri doğrulanacak.]',
+    'Sağlık doğrulaması: [İddialar uzman/kurumsal kaynakla kontrol edilmeden yayımlanmayacak.]',
+    'Editör notu: Kaynak metni otomatik olarak kopyalanmamıştır.'
+  ].join('\n\n');
+  const not = `Workers AI kotası dolduğu için yalnız kaynak künyesi ve editör alanları oluşturuldu. Kaynak metni otomatik kopyalanmadı; Sağlık ve hassas kategori içerikleri yayımlanamaz.`;
+  await env.DB.prepare(
+    'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+  ).bind(slug, baslik, spot, govde, kat.kategori, 'BTMEDYA Kaynak Fallback', `/assets/kategori-kapak/${kat.anahtar}.webp`, '', 'draft', null, o.link, kaynak.tarih || null, not, simdi).run();
+  await saveContentTaxonomy(env, 'news', slug, normalizeContentTaxonomy({}, kat.kategori));
+  await env.DB.prepare('INSERT OR IGNORE INTO kaynak_gorulen(link,created_at) VALUES(?,?)').bind(o.link, simdi).run();
+  Object.assign(kayit, { baslik, spot, slug, durum: 'taslak', gorsel: false, not });
+  rapor.taslak++;
+}
+
 /* Yazar, üç denetimden geçirir; geçemezse sorunları modele geri verip bir
    kez daha (en fazla üç deneme) yazdırır. En iyi (en az sorunlu) deneme döner; yayın kararı
    çağırandadır. */
@@ -621,12 +664,13 @@ export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
     kaynak.metin.slice(0, 9000)
   ].join('\n');
   const mesajlar = [{ role: 'system', content: yonerge(kategori) }, { role: 'user', content: girdi }];
-  let enIyi = null, sonHata = null;
+  let enIyi = null, sonHata = null, aktifModel = ayar.model || MODEL;
   for (let d = 0; d < denemeSayisi; d++) {
     let y;
     try {
-      const r = await env.AI.run(ayar.model, { messages: mesajlar, max_tokens: 6000, temperature: 0.4 });
-      const j = jsonAyikla(yanitMetni(r));
+      const ai = await aiCalistir(env, aktifModel, ayar.fallbackModel || FALLBACK_MODEL, { messages: mesajlar, max_tokens: 6000, temperature: 0.4 });
+      aktifModel = ai.model;
+      const j = jsonAyikla(yanitMetni(ai.yanit));
       if (!j || !j.baslik) throw new Error('Model geçerli JSON döndürmedi');
       y = temizle(j);
     } catch (e) { sonHata = e; continue; }
@@ -645,7 +689,7 @@ export async function yaz(env, ayar, kaynak, kategori, denemeSayisi = 3) {
     // Doğrulayıcı yalnız deterministik denetimden geçen taslağa çalışır:
     // kalan taslak zaten yeniden yazılacak, ikinci çağrı boşa gitmesin.
     if (!sorun.length) {
-      y.denetim.iddia = await iddiaDenetimi(env, ayar.model, y, kaynakMetin);
+      y.denetim.iddia = await iddiaDenetimi(env, aktifModel, y, kaynakMetin);
       if (y.denetim.iddia.hata) sorun.push(y.denetim.iddia.hata);
       for (const d of y.denetim.iddia.desteksiz) sorun.push(`kaynakla desteklenmeyen ifade: "${d.ifade}"${d.neden ? ' (' + d.neden + ')' : ''}`);
     }
@@ -902,13 +946,18 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     // haberle aynı konuyu anlatıyorsa yayına çıkmaz; editör karar verir.
     const tekrarKonu = benzerBaslik(y.baslik, son);
     const denetimTamam = rd.gecti && ad.gecti && kalite.gecti && iddia.gecti && !tekrarKonu;
-    const yayinla = ayar.otomatikYayin && denetimTamam;
+    // Gündem, Sağlık, Ulaşım ve Asayiş içerikleri editör onayı olmadan
+    // otomatik yayımlanamaz; özellikle sağlık iddiaları kaynak denetimi
+    // tamamlanmış olsa bile insan incelemesi gerektirir.
+    const onayGerekli = ['Gündem', 'Sağlık', 'Ulaşım', 'Asayiş'].includes(kat.kategori);
+    const yayinla = ayar.otomatikYayin && denetimTamam && !onayGerekli;
     const nedenler = [
       !rd.gecti ? 'rakam: ' + rd.eksik.slice(0, 3).join(', ') : '',
       !ad.gecti ? 'özel ad: ' + ad.eksik.slice(0, 3).join(', ') : '',
       !kalite.gecti ? 'kalite: ' + kalite.sorun.slice(0, 2).join('; ') : '',
       !iddia.gecti && rd.gecti && ad.gecti && kalite.gecti ? 'iddia: ' + (iddia.hata || iddia.desteksiz.slice(0, 2).map(d => d.ifade).join('; ')) : '',
-      tekrarKonu ? 'tekrar: son 4 günde benzer başlıklı haber var' : ''
+    tekrarKonu ? 'tekrar: son 4 günde benzer başlıklı haber var' : '',
+    onayGerekli ? 'editör onayı gerekli' : ''
     ].filter(Boolean);
     Object.assign(kayit, {
       baslik: y.baslik, spot: y.spot, vurgu: y.vurgu, deneme: y.deneme,
@@ -951,7 +1000,25 @@ async function kategoriYaz(env, ayar, { kat, o, kaynak, kayit, son = [] }, denem
     Object.assign(kayit, { slug, durum: yayinla ? 'yayinlandi' : 'taslak', gorsel: Boolean(gorsel) });
     if (yayinla) rapor.yayinlanan++; else rapor.taslak++;
   } catch (e) {
-    kayit.durum = 'hata'; kayit.not = String(e.message || e).slice(0, 200);
-    rapor.hatalar.push(kat.kategori + ': ' + kayit.not);
+    const msg = String(e && e.message || e).slice(0, 200);
+    const kotaDoldu = /4006|daily free allocation|neurons/i.test(msg);
+    kayit.durum = kotaDoldu ? 'ai-kota-bekleniyor' : 'hata';
+    kayit.not = kotaDoldu
+      ? 'Workers AI günlük nöron kotası dolu; içerik oluşturulmadı ve kota yenilendiğinde yeniden denenecek.'
+      : msg;
+    if (kotaDoldu) {
+      // Ücretsiz çözüm: AI olmadan kaynak metnini değiştirmeyen editör
+      // taslağı oluştur. Bu akış hiçbir sağlık/hassas içeriği yayımlamaz.
+      try {
+        await kaynakTabanliTaslak(env, { kat, o, kaynak, kayit, rapor });
+        return;
+      } catch (fallbackError) {
+        kayit.not += ' Kaynak fallbackı başarısız: ' + String(fallbackError && fallbackError.message || fallbackError).slice(0, 120);
+      }
+      rapor.uyarilar = rapor.uyarilar || [];
+      rapor.uyarilar.push(kat.kategori + ': Workers AI kota sınırı nedeniyle yeniden denenecek');
+    } else {
+      rapor.hatalar.push(kat.kategori + ': ' + kayit.not);
+    }
   }
 }

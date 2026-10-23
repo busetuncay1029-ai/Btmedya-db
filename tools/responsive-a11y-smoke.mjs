@@ -89,7 +89,7 @@ for (const vp of viewports) {
         }));
         const sourcePath=media.source ? new URL(media.source,BASE).pathname : '';
         const posterPath=media.poster ? new URL(media.poster,BASE).pathname : '';
-        const beklenen=v5?['/btmedya-tanitim-v5-dikey.mp4','/btmedya-tanitim-v5-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
+        const beklenen=v5?['/btmedya-giris-v7-ses-dikey.mp4','/btmedya-giris-v7-ses-dikey-poster.jpg']:['/btmedya-ai-film.mp4','/btmedya-ai-film-poster.jpg'];
         // H.264 çözemeyen Chromium (CI) aynı mobil kurgunun WebM kopyasını
         // alır (giris-v5.js); ikisi de doğru seçimdir, geniş kurgu değildir.
         const kaynakTamam=sourcePath.endsWith(beklenen[0])||(v5&&sourcePath.endsWith(beklenen[0].replace(/\.mp4$/,'.webm')));
