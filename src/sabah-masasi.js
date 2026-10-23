@@ -628,14 +628,21 @@ async function aiCalistir(env, model, fallbackModel, payload) {
 
 async function kaynakTabanliTaslak(env, { kat, o, kaynak, kayit, rapor }) {
   const baslik = String(kaynak.baslik || o.baslik || '').trim();
-  const paragraflar = (kaynak.paragraflar || []).map(x => String(x || '').trim()).filter(Boolean).slice(0, 6);
-  if (!baslik || paragraflar.length < 2) throw new Error('Kota fallbackı için yeterli kaynak metni yok');
+  if (!baslik || !o.link) throw new Error('Kota fallbackı için kaynak künyesi yok');
   let slug = slugUret(baslik);
   if (await env.DB.prepare('SELECT 1 FROM news WHERE slug=?').bind(slug).first()) slug += '-' + Date.now().toString(36).slice(-4);
   const simdi = new Date().toISOString();
-  const spot = String(kaynak.spot || paragraflar[0]).trim().slice(0, 420);
-  const govde = paragraflar.join('\n\n');
-  const not = `Workers AI kotası dolduğu için kaynak metni değiştirilmeden editör taslağı oluşturuldu. Sağlık ve hassas kategori içerikleri yayımlanamaz; editör başlık, spot, gövde ve kaynak doğrulamasını tamamlamalıdır.`;
+  const spot = `Kaynak: ${String(o.kaynakAd || 'kaynak yayın').slice(0, 120)}. İçerik, editör doğrulaması ve özgün BTV yazımı bekliyor.`;
+  const govde = [
+    `Kaynak başlığı: ${baslik}`,
+    `Kaynak bağlantısı: ${o.link}`,
+    '',
+    'Editör özeti: [Kaynak incelenerek özgün biçimde yazılacak.]',
+    '5N1K kontrolü: [Kim, ne, nerede, ne zaman, nasıl ve neden bilgileri doğrulanacak.]',
+    'Sağlık doğrulaması: [İddialar uzman/kurumsal kaynakla kontrol edilmeden yayımlanmayacak.]',
+    'Editör notu: Kaynak metni otomatik olarak kopyalanmamıştır.'
+  ].join('\n\n');
+  const not = `Workers AI kotası dolduğu için yalnız kaynak künyesi ve editör alanları oluşturuldu. Kaynak metni otomatik kopyalanmadı; Sağlık ve hassas kategori içerikleri yayımlanamaz.`;
   await env.DB.prepare(
     'INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
   ).bind(slug, baslik, spot, govde, kat.kategori, 'BTMEDYA Kaynak Fallback', `/assets/kategori-kapak/${kat.anahtar}.webp`, '', 'draft', null, o.link, kaynak.tarih || null, not, simdi).run();
