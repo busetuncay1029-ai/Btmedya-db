@@ -43,7 +43,7 @@ const MAX_IMAGE_BYTES = 6000000;
 /* Sitenin 8 kategorisi (public/home.js BTMEDYA_RELEVANCE ile aynı sıra).
    "kategori" haberin D1'deki category alanına yazılan değerdir. */
 export const KATEGORILER = [
-  { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-bel', 'balikesir-valilik', 'btt', 'cumha-balikesir'] },
+  { anahtar: 'balikesir', kategori: 'Yerel', kaynaklar: ['balikesir-tv', 'balikesir-bel', 'balikesir-valilik', 'btt', 'cumha-balikesir'] },
   { anahtar: 'gundem', kategori: 'Gündem', kaynaklar: ['trt-gundem', 'trt-turkiye', 'balikesir-valilik'] },
   // 10 Ekim: site "Türkiye" kategorisini gösteriyordu ama otomasyon beslemiyordu;
   // kategori zayıf kalıyordu. Ulusal gündem akışıyla beslenir (gundem ile ortak
@@ -65,6 +65,7 @@ export const KATEGORILER = [
 ];
 
 const KAYNAK = {
+  'balikesir-tv': { ad: 'Balıkesir TV', tur: 'sitemap', url: 'https://www.balikesirtv.com/sitemap-news.xml' },
   'balikesir-bel': { ad: 'Balıkesir Büyükşehir Belediyesi', tur: 'bel', url: 'https://balikesir.bel.tr/haberler' },
   'cumha-balikesir': { ad: 'CUMHA', tur: 'rss', url: 'https://cumha.com.tr/rss/lokasyon/balikesir' },
   'trt-gundem': { ad: 'TRT Haber', tur: 'rss', url: 'https://www.trthaber.com/gundem_articles.rss' },
@@ -232,6 +233,15 @@ function rssOgeleri(t) {
   })).filter(x => x.baslik && /^https?:\/\//.test(x.link));
 }
 
+function sitemapOgeleri(t) {
+  return (String(t || '').match(/<url\b[\s\S]*?<\/url>/gi) || []).map(b => ({
+    baslik: etiketsiz(al(b, 'news:title') || al(b, 'title')),
+    link: etiketsiz(al(b, 'loc')),
+    ozet: '',
+    tarih: etiketsiz(al(b, 'news:publication_date') || al(b, 'lastmod'))
+  })).filter(x => x.baslik && /^https?:\/\//.test(x.link));
+}
+
 /* Belediyenin RSS'i yok; haber listesi sayfasından bağlantılar okunur. */
 function belediyeOgeleri(t) {
   const gorulen = new Set(), out = [];
@@ -279,6 +289,8 @@ async function kaynakOku(id) {
     ? belediyeOgeleri(t)
     : k.tur === 'html'
       ? htmlListeOgeleri(t, k.base || k.url, k.base?.includes('balikesir.edu.tr') ? ['/haberler/', '/duyurular/'] : ['/haberler/'])
+      : k.tur === 'sitemap'
+        ? sitemapOgeleri(t)
       : rssOgeleri(t);
   return ogeler.slice(0, 25).map(o => ({
     ...o,
