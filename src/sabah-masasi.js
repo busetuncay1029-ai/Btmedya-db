@@ -520,7 +520,7 @@ function yonerge(kategori) {
     '',
     'EK ALANLAR',
     '17. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
-    '18. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
+    '18. gorsel_anahtar: haberle doğrudan ilgili, lisanslı/temsili bir görsel için 2-6 kelimelik arama ifadesi yaz. Kaynakta adı geçen kişi, kurum, ilçe veya konu haberi temsil ediyorsa adı ve bağlamı kullan (örn. "Ahmet Akin Balikesir municipality", "Bandirmaspor stadium", "agricultural fair tractors"). Kaynakta doğrulanmayan kişiyi görsele ekleme; kişiye ait fotoğraf bulunamazsa konu, kurum binası veya olay yeri görseline dön.',
     '',
     '19. KAPAK METNİ (haber kapağının dört katmanı; yalnız kaynakta yazan olgu, ima ve suçlama yok, soru ya da ünlem yok):',
     '    kapak_ust: bağlam/kaynak satırı, en fazla 40 karakter, cümle düzeninde (örn. "Ali Hikmet Paşa\'da 24-27 Eylül", "Valilik açıkladı").',
@@ -576,7 +576,7 @@ function temizle(j) {
     paragraflar: (Array.isArray(j.paragraflar) ? j.paragraflar : String(j.paragraflar || '').split(/\n{2,}/))
       .map(tek).filter(p => p.length > 30).slice(0, 8),
     vurgu: { deger: tek(j.vurgu_deger).slice(0, 14), etiket: tek(j.vurgu_etiket).slice(0, 60) },
-    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^a-zA-Z ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60),
+    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 80),
     kapak: {
       ust: tek(j.kapak_ust).replace(/[!?]+/g, '').slice(0, 48),
       kanca: tek(j.kapak_kanca).replace(/[!?]+/g, '').slice(0, 26),

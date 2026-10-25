@@ -940,6 +940,20 @@ def manset_karti(h, cikti, temsili_yolu=None, portre=None, bicim="WEBP"):
         y += sat_y
     y_alt -= bosluk_y
 
+    # Spot: başlıkla aynı kaynak haberden gelen kısa bağlam satırı.
+    # Kaynak kontrollü üretildiği için burada yeniden yazılmaz; yalnızca
+    # kapak okunabilirliği için 150 karaktere ve üç satıra sınırlandırılır.
+    spot = re.sub(r"\s+", " ", str(h.get("spot") or h.get("excerpt") or "")).strip()[:150]
+    if spot:
+        sf = f_baslik(max(22, int(H * 0.035 * olcek)))
+        ss = sar(d, spot, sf, metin_gen)[:3]
+        for s in reversed(ss):
+            sb = d.textbbox((0, 0), s, font=sf)
+            y_alt -= (sb[3] - sb[1])
+            golgeli_yazi(im, (ic_x, y_alt - sb[1]), s, sf, (238, 243, 248), max(2, int(sf.size * 0.035)))
+            y_alt -= int(sf.size * 0.10)
+        y_alt -= bosluk_y
+
     # Kanca: KIRMIZI kutu, beyaz. Fotoğrafsız kapakta rakam zaten üstte dev
     # sarı basılı; tekrar edilmez.
     pad_k = (int(H * 0.022), int(H * 0.012))

@@ -158,12 +158,22 @@ def main():
     with open(PLAN, encoding="utf-8") as f:
         plan = json.load(f)
     mevcut = {h["slug"] for h in plan}
+    mevcut_kayit = {h["slug"]: h for h in plan}
 
     haberler = akis_oku(kaynak)
     yeni = []
+    guncellenecek = []
     for h in haberler:
         slug = (h.get("slug") or "").strip()
-        if not slug or slug in mevcut:
+        if not slug:
+            continue
+        if slug in mevcut:
+            # Eski planlarda spot yoksa canlı haber özetinden bir kez al;
+            # böylece yeni kapak şablonu geçmiş haberlerde de uygulanır.
+            spot = re.sub(r"\s+", " ", str(h.get("excerpt") or h.get("ozet") or "")).strip()[:180]
+            if spot and not mevcut_kayit[slug].get("spot"):
+                mevcut_kayit[slug]["spot"] = spot
+                guncellenecek.append(slug)
             continue
         cover = str(h.get("cover_url") or h.get("kapak") or h.get("cover") or "")
         # Zaten gerçek kapağı olan (plan dışı ama /assets/haber-kapak/) atlanır.
@@ -177,6 +187,7 @@ def main():
         kayit = {
             "slug": slug,
             "baslik": baslik,
+            "spot": re.sub(r"\s+", " ", str(h.get("excerpt") or h.get("ozet") or "")).strip()[:180],
             "kategori": kategori,
             "altbilgi": "BTMEDYA · " + (tarih_tr(h.get("published_at") or h.get("tarih")) or "Haber Merkezi"),
             "imza": "BTMEDYA HABER MERKEZİ",
@@ -197,19 +208,22 @@ def main():
         mevcut.add(slug)
         yeni.append(slug)
 
-    if not yeni:
-        print("Kapaksız haber yok; plan güncel.")
+    hedefler = yeni + guncellenecek
+    if not hedefler:
+        print("Kapak planı güncel; yeni spot veya kapaksız haber yok.")
         return 0
 
     with open(PLAN, "w", encoding="utf-8") as f:
         json.dump(plan, f, ensure_ascii=False, indent=1)
         f.write("\n")
-    print(f"{len(yeni)} yeni plan girişi eklendi:")
+    print(f"{len(yeni)} yeni plan girişi, {len(guncellenecek)} eski plan spot güncellemesi:")
     for s in yeni:
         print("  +", s)
+    for s in guncellenecek:
+        print("  ~", s)
 
     # Kapakları üret (yalnız yeni slug'lar; kaynagi.json tüm plandan yazılır).
-    cmd = [sys.executable, os.path.join(KOK, "tools", "haber-kapagi.py"), *yeni]
+    cmd = [sys.executable, os.path.join(KOK, "tools", "haber-kapagi.py"), *hedefler]
     return subprocess.run(cmd, check=False).returncode
 
 
