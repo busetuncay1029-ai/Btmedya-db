@@ -35,6 +35,10 @@ const VARSAYILAN = Object.freeze({
   gunlukAzami: 8,
   kategoriler: null // null: hepsi
 });
+const DIS_TIMEOUT_MS = 12000;
+const DETAY_TIMEOUT_MS = 16000;
+const MAX_SOURCE_BYTES = 800000;
+const MAX_IMAGE_BYTES = 6000000;
 
 /* Sitenin 8 kategorisi (public/home.js BTMEDYA_RELEVANCE ile aynı sıra).
    "kategori" haberin D1'deki category alanına yazılan değerdir. */
@@ -175,10 +179,38 @@ function xml(s) { return String(s || '').replace(/<!\[CDATA\[|\]\]>/g, '').repla
 function etiketsiz(s) { return xml(String(s || '').replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim(); }
 function al(blok, tag) { const m = blok.match(new RegExp('<' + tag + '(?:\\s[^>]*)?>([\\s\\S]*?)<\\/' + tag + '>', 'i')); return m ? xml(m[1]).trim() : ''; }
 
-async function getir(url, ms = 15000) {
+async function sinirliBaytOku(r, maxBytes) {
+  const length = Number(r.headers.get('content-length'));
+  if (Number.isFinite(length) && length > maxBytes) throw new Error('yanıt gövdesi sınırı aşıldı');
+  if (!r.body) return new Uint8Array(await r.arrayBuffer());
+  const reader = r.body.getReader(), parcalar = [];
+  let toplam = 0;
+  try {
+    while (true) {
+      const x = await reader.read();
+      if (x.done) break;
+      toplam += x.value.byteLength;
+      if (toplam > maxBytes) {
+        await reader.cancel();
+        throw new Error('yanıt gövdesi sınırı aşıldı');
+      }
+      parcalar.push(x.value);
+    }
+  } finally { reader.releaseLock(); }
+  const out = new Uint8Array(toplam);
+  let at = 0;
+  for (const p of parcalar) { out.set(p, at); at += p.byteLength; }
+  return out;
+}
+
+async function sinirliMetinOku(r, maxBytes) {
+  return new TextDecoder().decode(await sinirliBaytOku(r, maxBytes));
+}
+
+async function getir(url, ms = DIS_TIMEOUT_MS) {
   const r = await fetch(url, { headers: UA, redirect: 'follow', signal: AbortSignal.timeout(ms) });
   if (!r.ok) throw new Error(url + ' ' + r.status);
-  return r.text();
+  return sinirliMetinOku(r, MAX_SOURCE_BYTES);
 }
 
 /* Google Trends günlük akışı: sorgu, tahmini trafik ve haber başlıkları. */
@@ -256,10 +288,23 @@ async function kaynakOku(id) {
   }));
 }
 
+async function mapLimit(items, limit, fn) {
+  const out = new Array(items.length), next = { value: 0 };
+  async function worker() {
+    while (true) {
+      const i = next.value++;
+      if (i >= items.length) return;
+      out[i] = await fn(items[i], i);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, () => worker()));
+  return out;
+}
+
 /* Haber sayfasından başlık, tarih ve paragraflar. Genel ayrıştırıcı:
    script/stil/menü atılır, 60 karakterden uzun <p>'ler toplanır. */
 export async function metinCek(url) {
-  let t = await getir(url, 20000);
+  let t = await getir(url, DETAY_TIMEOUT_MS);
   const baslik = etiketsiz((t.match(/<h1[^>]*>([\s\S]*?)<\/h1>/i) || [])[1] || (t.match(/<meta property="og:title" content="([^"]*)"/i) || [])[1] || '');
   const tarih = (t.match(/"datePublished"\s*:\s*"([^"]+)"/) || t.match(/(\d{2}\.\d{2}\.20\d{2})/) || [])[1] || '';
   const spot = etiketsiz((t.match(/<meta name="description" content="([^"]*)"/i) || [])[1] || '');
@@ -475,7 +520,7 @@ function yonerge(kategori) {
     '',
     'EK ALANLAR',
     '17. vurgu_deger: kaynakta aynen geçen en çarpıcı rakam (örn. "108 bin", "1-4"); yoksa boş bırak. vurgu_etiket: bu rakamın ne olduğu, en fazla 6 kelime.',
-    '18. gorsel_anahtar: haberi temsil edecek, İNSAN YÜZÜ İÇERMEYEN bir nesne ya da mekân fotoğrafı için 2-4 kelimelik İNGİLİZCE arama ifadesi (örn. "agricultural fair tractors", "hospital corridor"). Kişi adı, marka, logo yazma.',
+    '18. gorsel_anahtar: haberle doğrudan ilgili, lisanslı/temsili bir görsel için 2-6 kelimelik arama ifadesi yaz. Kaynakta adı geçen kişi, kurum, ilçe veya konu haberi temsil ediyorsa adı ve bağlamı kullan (örn. "Ahmet Akin Balikesir municipality", "Bandirmaspor stadium", "agricultural fair tractors"). Kaynakta doğrulanmayan kişiyi görsele ekleme; kişiye ait fotoğraf bulunamazsa konu, kurum binası veya olay yeri görseline dön.',
     '',
     '19. KAPAK METNİ (haber kapağının dört katmanı; yalnız kaynakta yazan olgu, ima ve suçlama yok, soru ya da ünlem yok):',
     '    kapak_ust: bağlam/kaynak satırı, en fazla 40 karakter, cümle düzeninde (örn. "Ali Hikmet Paşa\'da 24-27 Eylül", "Valilik açıkladı").',
@@ -531,7 +576,7 @@ function temizle(j) {
     paragraflar: (Array.isArray(j.paragraflar) ? j.paragraflar : String(j.paragraflar || '').split(/\n{2,}/))
       .map(tek).filter(p => p.length > 30).slice(0, 8),
     vurgu: { deger: tek(j.vurgu_deger).slice(0, 14), etiket: tek(j.vurgu_etiket).slice(0, 60) },
-    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^a-zA-Z ]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 60),
+    gorselAnahtar: String(j.gorsel_anahtar || '').replace(/[^\p{L}\p{N} ]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, 80),
     kapak: {
       ust: tek(j.kapak_ust).replace(/[!?]+/g, '').slice(0, 48),
       kanca: tek(j.kapak_kanca).replace(/[!?]+/g, '').slice(0, 26),
@@ -721,11 +766,11 @@ export async function gorselBul(env, anahtar, slug) {
     const commons = url.match(/upload\.wikimedia\.org\/wikipedia\/commons\/(.+)$/);
     if (commons && x.width > 1600) { const ad = commons[1].split('/').pop(); url = `https://upload.wikimedia.org/wikipedia/commons/thumb/${commons[1]}/1600px-${ad}`; }
     try {
-      const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(20000) });
+      const r = await fetch(url, { headers: UA, signal: AbortSignal.timeout(12000) });
       const tip = r.headers.get('content-type') || '';
       if (!r.ok || !/image\/jpe?g/.test(tip)) continue;
-      const govde = await r.arrayBuffer();
-      if (govde.byteLength < 30000 || govde.byteLength > 9000000) continue;
+      const govde = await sinirliBaytOku(r, MAX_IMAGE_BYTES);
+      if (govde.byteLength < 30000) continue;
       const key = `otomasyon/${slug}.jpg`;
       await env.MEDIA.put(key, govde, { httpMetadata: { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000' } });
       const lisans = x.license === 'cc0' || x.license === 'pdm' ? LISANS_AD[x.license] : `${LISANS_AD[x.license]} ${x.license_version || ''}`.trim();
@@ -813,7 +858,7 @@ export async function sabahMasasi(env, secenek = {}) {
 
   // Kaynakları paralel oku; biri düşerse diğerleri devam eder.
   const idler = [...new Set(kategoriler.flatMap(k => k.kaynaklar))];
-  const okunan = await Promise.all(idler.map(id => kaynakOku(id).then(x => [id, x]).catch(e => { rapor.hatalar.push(id + ': ' + e.message); return [id, []]; })));
+  const okunan = await mapLimit(idler, 4, id => kaynakOku(id).then(x => [id, x]).catch(e => { rapor.hatalar.push(id + ': ' + e.message); return [id, []]; }));
   const havuz = Object.fromEntries(okunan);
 
   await env.DB.prepare('CREATE TABLE IF NOT EXISTS kaynak_gorulen (link TEXT PRIMARY KEY, created_at TEXT NOT NULL)').run();
@@ -855,10 +900,10 @@ export async function sabahMasasi(env, secenek = {}) {
   const isle = env.SABAH_YAZICI && typeof env.SABAH_YAZICI.kategoriIsle === 'function'
     ? is => env.SABAH_YAZICI.kategoriIsle(is)
     : is => kategoriIsle(env, is);
-  const sonuclar = await Promise.all(isler.map(is => Promise.resolve().then(() => isle(is)).catch(e => ({
+  const sonuclar = await mapLimit(isler, 2, is => Promise.resolve().then(() => isle(is)).catch(e => ({
     secilen: [{ kategori: is.kat.kategori, anahtar: is.kat.anahtar, durum: 'hata', not: String(e && e.message || e).slice(0, 200) }],
     yayinlanan: 0, taslak: 0, hatalar: [is.kat.kategori + ': ' + String(e && e.message || e).slice(0, 200)]
-  }))));
+  })));
   for (const x of sonuclar) {
     rapor.secilen.push(...(x.secilen || []));
     rapor.yayinlanan += x.yayinlanan || 0;

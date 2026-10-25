@@ -10,6 +10,8 @@ import { kaynakKaydet, kaynakBagla, ensureKaynakMasasiTables, ilceBul } from "./
  */
 const FEEDS = [
   {id:'google-balikesir', name:'Google News / Balıkesir', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'discovery'},
+  {id:'google-balikesirtv', name:'Google News / Balıkesir TV', url:'https://news.google.com/rss/search?q=site%3Abalikesirtv.com%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'competitor'},
+  {id:'balikesirtv-news', name:'Balıkesir TV / Günlük Haberler', url:'https://www.balikesirtv.com/sitemap-news.xml', type:'sitemap', category:'Yerel', tier:'competitor'},
   {id:'google-balikesir-ekonomi', name:'Google News / Balıkesir ekonomi', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20ekonomi&hl=tr&gl=TR&ceid=TR:tr', category:'Ekonomi', tier:'discovery'},
   {id:'google-balikesir-belediye', name:'Google News / Balıkesir belediye', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20belediye&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'discovery'},
   {id:'google-balikesir-spor', name:'Google News / Balıkesir spor', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20spor&hl=tr&gl=TR&ceid=TR:tr', category:'Spor', tier:'discovery'},
@@ -43,6 +45,17 @@ function rssItems(xml){
     if(!link){const m=b.match(/<link[^>]+href=["']([^"']+)["']/i);link=m?m[1]:''}
     const title=pick('title'), description=pick('description')||pick('summary')||pick('content'), date=pick('pubDate')||pick('published')||pick('updated');
     if(title&&/^https?:\/\//.test(link)) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:description.slice(0,1800),date});
+  }
+  return out;
+}
+function sitemapItems(xml){
+  const out=[];
+  for(const b of (String(xml||'').match(/<url\b[\s\S]*?<\/url>/gi)||[])){
+    const pick=tag=>{const m=b.match(new RegExp('<'+tag+'(?:\s[^>]*)?>([\s\S]*?)<\/'+tag+'>','i'));return m?strip(m[1]):''};
+    const link=pick('loc');
+    const title=pick('news:title')||pick('title');
+    const date=pick('news:publication_date')||pick('lastmod');
+    if(link && title && /^https?:\/\//.test(link)) out.push({title:title.slice(0,240),link:link.slice(0,2000),description:'',date});
   }
   return out;
 }
@@ -130,7 +143,10 @@ export async function runNewsIntelligence(env,{limit=8}={}){
     await kaynakKaydet(env,{url:feed.url,publisher:feed.name,tier:feed.tier,category:feed.category,status:'active',notes:'BTMEDYA Haber İstihbarat Motoru kaynak kataloğu.'}).catch(()=>{});
   }
   const fetched=await Promise.all(activeFeeds.map(async feed=>{
-    try{return {feed,items:rssItems(await get(feed.url))};}
+    try{
+      const xml=await get(feed.url);
+      return {feed,items:feed.type==='sitemap'?sitemapItems(xml):rssItems(xml)};
+    }
     catch(e){result.errors.push(feed.name+': '+String(e.message||e).slice(0,100));return {feed,items:[]};}
   }));
   const candidates=[];
