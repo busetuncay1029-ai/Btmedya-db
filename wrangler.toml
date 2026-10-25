@@ -78,7 +78,7 @@ METRICOOL_ACCOUNT_EMAIL = "busetuncay74@gmail.com"
 METRICOOL_TIMEZONE = "Europe/Istanbul"
 # Güvenli kaynak/doğrulama kapılarını geçen haberlerde otomatik yayın açıktır;
 # hassas, tanıtım, tekrar veya denetimden kalan içerikler yine taslak kalır.
-BTMEDYA_AUTO_PUBLISH = "true"
+BTMEDYA_AUTO_PUBLISH = "false"
 # Sabah Masası için model seçimi. Fallback yalnızca model/çağrı hatalarında
 # devreye girer; toplam Workers AI günlük kotası dolduğunda ikinci çağrı
 # yapılmaz, içerik güvenli biçimde yeniden denemeye bırakılır.
