@@ -26,10 +26,11 @@ a{color:#d9ff3f}
 <script>
 (()=>{
   const sonra=new URLSearchParams(location.search).get('sonra');
-  const hedef=sonra&&/^\/admin\/(?!giris\/)[a-z0-9\-\/.?=&%]*$/i.test(sonra)
-    ? '/admin/giris/?sonra='+encodeURIComponent(sonra)
-    : '/admin/agency-os/';
-  location.replace(hedef);
+  if(!(sonra&&/^\/admin\/(?!giris\/)[a-z0-9\-\/.?=&%]*$/i.test(sonra))){
+    location.replace('/admin/agency-os/');
+    return;
+  }
+  location.replace('/admin/giris/?sonra='+encodeURIComponent(sonra));
 })();
 </script>
 </body>
