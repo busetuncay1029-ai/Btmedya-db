@@ -71,6 +71,15 @@ async function connectProvider(provider){
  const v=$('#workspace').value.split(':');
  if(provider==='tiktok'||provider==='youtube'){ location.href='/api/social/direct/'+provider+'/start'; return; }
  if(provider==='facebook'||provider==='instagram'){
+   try{
+    const h=await api('/api/social/direct/health');
+    if(!h.configured){
+     const missing=(h.setup&&h.setup.missing||[]).join(', ')||'META_APP_ID, META_APP_SECRET';
+     $('#s1').textContent='Meta bağlantısı hazır değil. Eksik Worker secret: '+missing+'. Meta Developer App ve OAuth callback ayarı tamamlanmadan bağlantı başlatılamaz.';
+     $('#s1').className='status warn';
+     return;
+    }
+   }catch(e){$('#s1').textContent='Meta bağlantı kontrolü başarısız: '+(e.message||e);$('#s1').className='status warn';return;}
    location.href='/api/social/direct/meta/start?workspace_type='+encodeURIComponent(v[0])+'&workspace_id='+encodeURIComponent(v.slice(1).join(':'))+'&return_to='+encodeURIComponent('/admin/social-os/');
    return;
  }
