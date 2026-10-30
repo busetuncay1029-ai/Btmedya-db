@@ -2009,7 +2009,10 @@ export default { async scheduled(controller, env, ctx){
       }else if(slot===1){
         const x=await processDirectSocialQueue(env,5);
         console.log("[btmedya] Direct Social handoff",JSON.stringify({enabled:x.enabled,processed:x.processed,published:x.published,failed:x.failed}));
-      }else if(slot===2){
+      }else if(slot===2 && minute===10){
+        // Kaynak taraması saatliktir. Cron altyapısı 5 dakikalık diğer
+        // teslimat/izleme şeritlerini korur; 40. dakikadaki ikinci slot
+        // bilinçli olarak boş bırakılır.
         const x=await runNewsIntelligence(env,{limit:8});
         console.log("[btmedya] haber istihbarati",JSON.stringify({scanned:x.scanned,added:x.added,hot:x.hot,errors:x.errors?.length||0}));
       }else if(slot===3){

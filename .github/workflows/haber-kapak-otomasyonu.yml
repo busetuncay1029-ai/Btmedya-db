@@ -14,9 +14,9 @@ name: BTMedya haber kapak otomasyonu
 
 on:
   schedule:
-    # Sabah Masası 05:00 UTC (08:00 İstanbul) çalışır; sonrasında ve gün
-    # içinde Autopilot yayınlarını yakalamak için 6 saatte bir süpürür.
-    - cron: "40 5,11,17,23 * * *"
+    # Sabah Masası 05:00 UTC (08:00 İstanbul) çalışır; geçmişte kapaksız
+    # kalanlar ve gün içindeki yeni haberler için her saat süpürür.
+    - cron: "40 * * * *"
   workflow_dispatch:
 
 permissions:
