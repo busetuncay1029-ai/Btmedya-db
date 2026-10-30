@@ -21,6 +21,7 @@ import subprocess
 import sys
 import urllib.error
 import urllib.request
+import time
 
 API = os.environ.get("GITHUB_API_URL", "https://api.github.com")
 GRAPHQL = os.environ.get("GITHUB_GRAPHQL_URL", "https://api.github.com/graphql")
@@ -38,22 +39,37 @@ PARCA_BAYT = 20 * 1024 * 1024
 
 def istek(yontem: str, url: str, govde: dict | None = None) -> tuple[int, dict]:
     veri = None if govde is None else json.dumps(govde).encode()
-    req = urllib.request.Request(url, data=veri, method=yontem, headers={
+    headers = {
         "Authorization": "Bearer " + TOKEN,
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
         "X-GitHub-Api-Version": "2022-11-28",
-    })
-    try:
-        with urllib.request.urlopen(req, timeout=120) as yanit:
-            ham = yanit.read()
-            return yanit.status, json.loads(ham) if ham else {}
-    except urllib.error.HTTPError as hata:
-        ham = hata.read().decode("utf-8", "replace")[:800]
+    }
+    # GitHub GraphQL zaman zaman 502/503/504 döndürebilir. Kapak dosyaları
+    # üretildikten sonra yeniden üretmek pahalı olduğundan, aynı isteği
+    # kısa ve sınırlı bir exponential backoff ile tekrarlarız.
+    for deneme in range(4):
+        req = urllib.request.Request(url, data=veri, method=yontem, headers=headers)
         try:
-            return hata.code, json.loads(ham)
-        except ValueError:
-            return hata.code, {"message": ham}
+            with urllib.request.urlopen(req, timeout=120) as yanit:
+                ham = yanit.read()
+                return yanit.status, json.loads(ham) if ham else {}
+        except urllib.error.HTTPError as hata:
+            ham = hata.read().decode("utf-8", "replace")[:800]
+            try:
+                govde_json = json.loads(ham) if ham else {}
+            except ValueError:
+                govde_json = {"message": ham}
+            if hata.code in (408, 425, 429, 500, 502, 503, 504) and deneme < 3:
+                time.sleep(2 ** deneme)
+                continue
+            return hata.code, govde_json
+        except (TimeoutError, urllib.error.URLError) as hata:
+            if deneme < 3:
+                time.sleep(2 ** deneme)
+                continue
+            return 599, {"message": str(hata)}
+    return 599, {"message": "GitHub API yeniden deneme sınırı aşıldı"}
 
 
 def degisenler() -> tuple[list[str], list[str]]:
