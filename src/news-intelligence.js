@@ -10,6 +10,7 @@ import { kaynakKaydet, kaynakBagla, ensureKaynakMasasiTables, ilceBul } from "./
  */
 const FEEDS = [
   {id:'google-balikesir', name:'Google News / Balıkesir', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'discovery'},
+  {id:'google-balikesir-ilceleri', name:'Google News / Balıkesir ilçeleri', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20OR%20Burhaniye%20OR%20Band%C4%B1rma%20OR%20Edremit%20OR%20Ayval%C4%B1k%20OR%20Karesi%20OR%20Alt%C4%B1eyl%C3%BCl%20OR%20S%C4%B1nd%C4%B1rg%C4%B1%20OR%20Susurluk%20OR%20G%C3%B6nen%20OR%20Manyas%20OR%20Erdek%20OR%20G%C3%B6me%C3%A7%20OR%20Havran%20OR%20%C4%B0vrindi%20OR%20Bigadi%C3%A7%20OR%20Balya%20OR%20Dursunbey%20OR%20Kepsut%20OR%20Marmara&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'discovery'},
   {id:'google-balikesirtv', name:'Google News / Balıkesir TV', url:'https://news.google.com/rss/search?q=site%3Abalikesirtv.com%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR:tr', category:'Yerel', tier:'competitor'},
   {id:'balikesirtv-news', name:'Balıkesir TV / Günlük Haberler', url:'https://www.balikesirtv.com/sitemap-news.xml', type:'sitemap', category:'Yerel', tier:'competitor'},
   {id:'google-balikesir-ekonomi', name:'Google News / Balıkesir ekonomi', url:'https://news.google.com/rss/search?q=Bal%C4%B1kesir%20ekonomi&hl=tr&gl=TR&ceid=TR:tr', category:'Ekonomi', tier:'discovery'},
