@@ -1,0 +1,224 @@
+/* BTMEDYA VIDEO REFERENCE / 31 OCT 2026
+   Visual direction: charcoal screen, warm orange signal, oversized white type,
+   compact editorial modules, and a quieter mobile reading rhythm.
+   Content, routes and CMS markup remain canonical. */
+:root{
+  --ref-bg:#1f1d1b;
+  --ref-bg-deep:#151412;
+  --ref-surface:#292623;
+  --ref-surface-soft:rgba(255,255,255,.055);
+  --ref-paper:#f4f1eb;
+  --ref-ink:#f7f5f0;
+  --ref-muted:#b7b0a8;
+  --ref-orange:#ef805c;
+  --ref-orange-bright:#ff9470;
+  --ref-line:rgba(247,245,240,.17);
+  --ref-ease:cubic-bezier(.16,1,.3,1);
+}
+
+html{background:var(--ref-bg-deep)}
+body.ana-sade{
+  background:
+    radial-gradient(720px 420px at 78% -8%,rgba(239,128,92,.12),transparent 68%),
+    linear-gradient(180deg,var(--ref-bg) 0%,var(--ref-bg-deep) 52%,#11100f 100%) !important;
+  color:var(--ref-ink);
+}
+body.ana-sade:before{background:radial-gradient(circle at var(--mx,50%) var(--my,20%),rgba(239,128,92,.065),transparent 28%);mix-blend-mode:screen}
+
+/* The supplied reference has one clear signal color and a quiet screen around it. */
+body.ana-sade .topbar{
+  background:rgba(31,29,27,.86)!important;
+  border-bottom:1px solid var(--ref-line)!important;
+  box-shadow:0 14px 42px rgba(0,0,0,.2);
+  backdrop-filter:blur(18px) saturate(108%);
+}
+body.ana-sade .brand img{filter:grayscale(1) brightness(2);opacity:.94}
+body.ana-sade .top-meta{color:var(--ref-muted)}
+body.ana-sade .top-meta i{background:var(--ref-orange);box-shadow:0 0 14px rgba(239,128,92,.7)}
+body.ana-sade .language-switch a[aria-current="page"],
+body.ana-sade .top-cta{color:var(--ref-orange-bright);border-color:rgba(239,128,92,.72)}
+body.ana-sade .top-cta:hover{background:var(--ref-orange);color:#211613;box-shadow:0 12px 34px rgba(239,128,92,.2)}
+body.ana-sade .hamburger{color:var(--ref-paper)}
+body.ana-sade .hamburger:focus-visible,
+body.ana-sade .top-cta:focus-visible{outline-color:var(--ref-orange)}
+
+/* Hero: a laptop-screen-like dark stage with one warm sunburst signal. */
+body.ana-sade .giris-v5{
+  position:relative;
+  isolation:isolate;
+  background:var(--ref-bg-deep)!important;
+  border-bottom:1px solid var(--ref-line);
+}
+body.ana-sade .giris-v5:before{
+  content:"";
+  position:absolute;
+  z-index:3;
+  top:clamp(106px,14vh,164px);
+  right:clamp(32px,9vw,150px);
+  width:clamp(58px,7vw,112px);
+  aspect-ratio:1;
+  border-radius:50%;
+  background:repeating-conic-gradient(from -8deg,transparent 0 9deg,rgba(239,128,92,.96) 9deg 15deg,transparent 15deg 25deg);
+  -webkit-mask:radial-gradient(circle,#000 0 28%,transparent 29% 100%);
+  mask:radial-gradient(circle,#000 0 28%,transparent 29% 100%);
+  opacity:.92;
+  transform:rotate(-8deg);
+  pointer-events:none;
+}
+body.ana-sade .giris-v5:after{
+  content:"BTMEDYA / VISUAL NEWSROOM";
+  position:absolute;
+  z-index:3;
+  top:clamp(92px,12vh,138px);
+  right:clamp(24px,5vw,72px);
+  color:rgba(247,245,240,.62);
+  font:700 9px/1 Jet,ui-monospace,monospace;
+  letter-spacing:.16em;
+  transform:rotate(90deg) translateX(100%);
+  transform-origin:right top;
+  pointer-events:none;
+}
+body.ana-sade .giris-v5 video{filter:saturate(.68) contrast(1.08) brightness(.78)}
+body.ana-sade .giris-v5:where(:hover) video{filter:saturate(.76) contrast(1.08) brightness(.82)}
+body.ana-sade .giris-v5-kat{
+  background:linear-gradient(180deg,rgba(21,20,18,.03),rgba(21,20,18,.9) 22%,rgba(21,20,18,.98));
+}
+body.ana-sade .giris-v5-kat-ust{color:var(--ref-orange-bright)}
+body.ana-sade .giris-v5-kat-ana,
+body.ana-sade .hero-paths-grid a{border-color:var(--ref-line)!important}
+body.ana-sade .giris-v5-kat-k{background:rgba(31,29,27,.68)!important}
+body.ana-sade .giris-v5-kat-k:hover,
+body.ana-sade .giris-v5-kat-k:focus-within{background:rgba(239,128,92,.11)!important;border-color:rgba(239,128,92,.7)!important}
+body.ana-sade .giris-v5-kat-ana b,
+body.ana-sade .giris-v5-kat-ana i{color:var(--ref-paper)}
+body.ana-sade .giris-v5-kat-ana span,
+body.ana-sade .giris-v5-kat-k p,
+body.ana-sade .giris-v5-kat-k li a{color:var(--ref-muted)}
+body.ana-sade .giris-v5-kat-ana:hover b,
+body.ana-sade .giris-v5-kat-ana:hover i,
+body.ana-sade .giris-v5-kat-k li a:hover{color:var(--ref-orange-bright)}
+
+/* Replace the previous blue/lime signal with the reference orange. */
+body.ana-sade .kicker,
+body.ana-sade .section-head .kicker,
+body.ana-sade .giris-v5-kat-ust,
+body.ana-sade .news-body small,
+body.ana-sade .service-grid span,
+body.ana-sade .source-grid span,
+body.ana-sade .archive-tag{color:var(--ref-orange-bright)!important}
+body.ana-sade .text-link:hover,
+body.ana-sade .news-open:hover,
+body.ana-sade .source-grid a:hover{color:var(--ref-orange-bright)!important}
+body.ana-sade .button-dark,
+body.ana-sade .filter:hover,
+body.ana-sade .filter.active,
+body.ana-sade .portfoy-sekme:hover,
+body.ana-sade .portfoy-sekme.secili{background:var(--ref-orange)!important;border-color:var(--ref-orange)!important;color:#211613!important}
+body.ana-sade .button{border-radius:2px!important}
+body.ana-sade .button-dark{box-shadow:0 12px 34px rgba(239,128,92,.18)}
+body.ana-sade .button-light:hover{border-color:var(--ref-orange)!important;background:rgba(239,128,92,.08)!important}
+
+body.ana-sade .vitrine-status,
+body.ana-sade .bt-breaking,
+body.ana-sade .ticker{background:rgba(21,20,18,.82)!important;border-color:var(--ref-line)!important}
+body.ana-sade .vitrine-dot{background:var(--ref-orange);box-shadow:0 0 18px rgba(239,128,92,.6)}
+body.ana-sade .vitrine-status-links a:hover{border-color:rgba(239,128,92,.7);color:var(--ref-orange-bright)}
+body.ana-sade .bt-breaking{border-top-color:var(--ref-orange)!important}
+body.ana-sade .bt-breaking b{color:var(--ref-orange-bright)}
+body.ana-sade .ticker-track span:after{color:var(--ref-orange)}
+
+/* A sharper editorial grid, echoing the laptop frame and on-screen modules. */
+body.ana-sade .hero-paths-static,
+body.ana-sade .bt-world,
+body.ana-sade .section,
+body.ana-sade .manifesto,
+body.ana-sade .archive-section,
+body.ana-sade .ai-section,
+body.ana-sade .source-section,
+body.ana-sade .founder-section,
+body.ana-sade .contact-section{background:transparent!important}
+body.ana-sade .hero-paths-static,
+body.ana-sade .section,
+body.ana-sade .manifesto{border-color:var(--ref-line)!important}
+body.ana-sade .display,
+body.ana-sade .section-head h2,
+body.ana-sade .manifesto h2,
+body.ana-sade .story-copy h2,
+body.ana-sade .ai-copy h2{font-family:Space,Manrope,sans-serif;letter-spacing:-.075em;color:var(--ref-ink)}
+body.ana-sade .display span,
+body.ana-sade .display em,
+body.ana-sade .manifesto h2 span,
+body.ana-sade .story-copy h2 span{color:var(--ref-orange-bright)!important}
+body.ana-sade .section-head:after{background:var(--ref-orange)}
+body.ana-sade .bt-world-stage,
+body.ana-sade .story-stage,
+body.ana-sade .ai-stage{
+  border-radius:3px!important;
+  border-color:var(--ref-line)!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.065),rgba(255,255,255,.018))!important;
+  box-shadow:0 28px 90px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.06);
+}
+body.ana-sade .bt-world-tab{border-radius:2px!important;background:rgba(255,255,255,.035)!important;border-color:var(--ref-line)!important}
+body.ana-sade .bt-world-tab:hover,
+body.ana-sade .bt-world-tab.is-active{background:rgba(239,128,92,.12)!important;border-color:rgba(239,128,92,.72)!important;box-shadow:0 12px 30px rgba(239,128,92,.1)}
+body.ana-sade .news-card,
+body.ana-sade .service-grid article,
+body.ana-sade .portfoy-kart,
+body.ana-sade .archive-live-card,
+body.ana-sade .ai-grid article,
+body.ana-sade .source-grid a{
+  border-radius:2px!important;
+  border-color:var(--ref-line)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025))!important;
+  box-shadow:0 16px 46px rgba(0,0,0,.18);
+}
+body.ana-sade .news-card:hover,
+body.ana-sade .portfoy-kart:hover,
+body.ana-sade .archive-live-card:hover{border-color:rgba(239,128,92,.65)!important;box-shadow:0 26px 66px rgba(0,0,0,.34)}
+body.ana-sade .news-card:before{background:var(--ref-orange)!important}
+body.ana-sade .news-card[data-category*=gundem],
+body.ana-sade .news-card[data-category*=yerel],
+body.ana-sade .news-card[data-category*=ekonomi],
+body.ana-sade .news-card[data-category*=tarim],
+body.ana-sade .news-card[data-category*=kultur],
+body.ana-sade .news-card[data-category*=zanaat],
+body.ana-sade .news-card[data-category*=spor],
+body.ana-sade .news-card[data-category*=saglik]{--card-accent:var(--ref-orange)}
+body.ana-sade .news-card .news-body h3,
+body.ana-sade .service-grid article h3,
+body.ana-sade .portfoy-metin h3{font-family:Space,Manrope,sans-serif;letter-spacing:-.055em}
+body.ana-sade .news-body p,
+body.ana-sade .section-side,
+body.ana-sade .manifesto-copy,
+body.ana-sade .service-grid article p{color:var(--ref-muted)}
+body.ana-sade .ai-section{border-color:rgba(239,128,92,.23)!important}
+body.ana-sade .ai-section:before{color:rgba(239,128,92,.72)!important}
+body.ana-sade .ai-orb{background:radial-gradient(circle,var(--ref-orange-bright) 0,#6a2f24 42%,#171210 74%)!important;box-shadow:0 0 70px rgba(239,128,92,.26)}
+body.ana-sade footer{background:#0e0d0c!important;border-color:var(--ref-line)!important}
+body.ana-sade footer a:hover{color:var(--ref-orange-bright)}
+
+@media(max-width:900px){
+  body.ana-sade .giris-v5:before{top:100px;right:28px;width:64px}
+  body.ana-sade .giris-v5:after{display:none}
+  body.ana-sade .vitrine-status-inner{background:rgba(21,20,18,.46)}
+}
+@media(max-width:720px){
+  body.ana-sade{background:linear-gradient(180deg,var(--ref-bg) 0%,#151311 100%)!important}
+  body.ana-sade .topbar{background:rgba(31,29,27,.94)!important}
+  body.ana-sade .giris-v5{min-height:100svh!important}
+  body.ana-sade .giris-v5:before{top:92px;right:20px;width:54px}
+  body.ana-sade .giris-v5-kat{background:linear-gradient(180deg,transparent 0%,rgba(21,20,18,.96) 22%,rgba(21,20,18,1) 100%)}
+  body.ana-sade .giris-v5-kat-liste{gap:1px}
+  body.ana-sade .giris-v5-kat-k{border-radius:0!important}
+  body.ana-sade .hero-paths-grid a{border-radius:0!important}
+  body.ana-sade .section,
+  body.ana-sade .manifesto{padding-top:82px;padding-bottom:82px}
+  body.ana-sade .news-card,
+  body.ana-sade .news-card.featured,
+  body.ana-sade .service-grid article,
+  body.ana-sade .archive-live-card{border-radius:2px!important}
+  body.ana-sade .display{letter-spacing:-.065em}
+}
+@media(prefers-reduced-motion:reduce){
+  body.ana-sade .giris-v5:before{transform:none}
+}
