@@ -406,14 +406,21 @@ async function newsApi(request, env, url, ctx){
     }).length:0;
     const mediaSchemaRequired=['key','original_name','mime','size','category','tags','title','description','alt_text','published','slot','sort_order','created_at','updated_at','ai_generated'];
     let mediaSchema={ok:false,missing:mediaSchemaRequired,error:null};
-    if(env.DB){
+    const mediaSchemaCacheKey='health:media-schema:v2';
+    const cachedMediaSchema=env.KV ? await env.KV.get(mediaSchemaCacheKey,'json').catch(()=>null) : null;
+    if(cachedMediaSchema && typeof cachedMediaSchema.ok==='boolean'){
+      mediaSchema=cachedMediaSchema;
+    }else if(env.DB){
       try{
         const schema=await env.DB.prepare("PRAGMA table_info(media)").all();
         const names=new Set((schema.results||[]).map(x=>String(x.name||'')));
         const missing=mediaSchemaRequired.filter(x=>!names.has(x));
         mediaSchema={ok:missing.length===0,missing,error:null};
+        if(env.KV) await env.KV.put(mediaSchemaCacheKey,JSON.stringify(mediaSchema),{expirationTtl:300}).catch(()=>{});
       }catch(e){
-        mediaSchema={ok:false,missing:mediaSchemaRequired,error:String(e?.message||e).slice(0,240)};
+        // Health must remain useful when D1 is temporarily quota-protected or busy.
+        mediaSchema={ok:null,missing:[],error:'D1 schema probe deferred: '+String(e?.message||e).slice(0,200)};
+        if(env.KV) await env.KV.put(mediaSchemaCacheKey,JSON.stringify(mediaSchema),{expirationTtl:30}).catch(()=>{});
       }
     }else mediaSchema={ok:false,missing:mediaSchemaRequired,error:'D1 not configured'};
     return json({
