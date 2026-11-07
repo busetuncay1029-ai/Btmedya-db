@@ -112,6 +112,10 @@ jobs:
           grep -q '/admin/agency-os/' public/admin/index.html
           test -s public/admin/site-os/index.html
           test -s public/admin/musteri-sosyal/index.html
+          test -s public/admin/operasyon-raporu/index.html
+          grep -q 'name="robots" content="noindex,nofollow"' public/admin/operasyon-raporu/index.html
+          grep -q "private, no-store, max-age=0" src/worker.js
+          grep -q 'href="/admin/operasyon-raporu/"' public/admin/agency-os/index.html
           grep -q '/admin/site-os/' public/admin/index.html
           grep -q 'href="/admin/"' public/index.html
           grep -q 'btmedya-core' src/worker.js
@@ -265,6 +269,7 @@ jobs:
           check_http "hakkimizda" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/hakkimizda/" "200"
           check_http "iletisim" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/iletisim/" "200"
           check_http "agency-os" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/agency-os/" "302"
+          check_http "admin-ops-report-auth" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/operasyon-raporu/" "302"
           check_http "publishing-center" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/yayin/" "302"
           check_http "social-studio-canonical" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/social-studio/" "200"
           check_http "client-hub" "btmedya.com.tr" "$HOME_IP" "https://btmedya.com.tr/admin/client-hub/" "302"

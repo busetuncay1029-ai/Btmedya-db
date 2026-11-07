@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="theme-color" content="#080b0a">
+  <title>BTMEDYA · Günlük Haber ve Operasyon Raporu · 7 Kasım 2026</title>
+  <style>
+    :root{color-scheme:dark;--bg:#080b0a;--panel:#101513;--panel2:#0c100f;--line:#29332f;--text:#f2f6f3;--muted:#a0ada5;--lime:#d9ff3f;--green:#83e6a2;--amber:#ffd166;--red:#ff8d83;--blue:#8fd8ff}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth;background:var(--bg)}
+    body{margin:0;background:radial-gradient(900px 520px at 82% -10%,rgba(98,136,73,.16),transparent 62%),var(--bg);color:var(--text);font:15px/1.58 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+    a{color:var(--lime);text-underline-offset:3px}
+    a:hover{color:#efffa0}
+    a:focus-visible,summary:focus-visible{outline:3px solid #fff;outline-offset:3px;border-radius:4px}
+    .wrap{width:min(1240px,100%);margin:0 auto;padding:20px clamp(14px,3vw,34px) 48px}
+    .top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:18px}
+    .brand{font-weight:950;letter-spacing:.1em;font-size:13px}.brand span{color:var(--lime)}
+    .top-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+    .tag,.back{display:inline-flex;align-items:center;min-height:40px;padding:7px 12px;border:1px solid var(--line);border-radius:999px;background:rgba(11,15,13,.8);font-size:11px;font-weight:800;text-decoration:none}
+    .tag{color:var(--lime);letter-spacing:.09em;text-transform:uppercase}
+    .back{color:var(--text)}
+    .hero{position:relative;overflow:hidden;padding:clamp(22px,4vw,46px);border:1px solid #364237;border-radius:24px;background:linear-gradient(125deg,rgba(217,255,63,.09),transparent 42%),linear-gradient(160deg,#151c17,#0d1210 68%);box-shadow:0 22px 70px rgba(0,0,0,.22)}
+    .hero:after{content:"";position:absolute;width:250px;height:250px;right:-85px;top:-120px;border:1px solid rgba(217,255,63,.18);border-radius:50%;box-shadow:0 0 0 28px rgba(217,255,63,.025),0 0 0 58px rgba(217,255,63,.02);pointer-events:none}
+    .eyebrow{color:var(--lime);font:800 10px/1.4 ui-monospace,SFMono-Regular,monospace;letter-spacing:.17em;text-transform:uppercase}
+    h1{max-width:850px;margin:12px 0 12px;font-size:clamp(34px,6vw,68px);line-height:.98;letter-spacing:-.055em}
+    .lede{max-width:780px;margin:0;color:#c1ccc4;font-size:clamp(15px,2vw,18px)}
+    .hero-note{max-width:850px;margin:18px 0 0;padding:12px 14px;border-left:3px solid var(--lime);background:rgba(0,0,0,.2);color:#d0d9d2;font-size:13px}
+    .stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:14px 0 28px}
+    .stat{min-height:112px;padding:15px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(160deg,#111714,#0b0f0d)}
+    .stat b{display:block;color:var(--lime);font-size:clamp(27px,4vw,40px);line-height:1.1;letter-spacing:-.04em}
+    .stat span{display:block;margin-top:8px;color:var(--muted);font-size:11px;font-weight:750;letter-spacing:.07em;text-transform:uppercase}
+    section{scroll-margin-top:18px}
+    .section{margin-top:24px}
+    .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin:0 0 12px}
+    .section-head h2{margin:4px 0 0;font-size:clamp(22px,3vw,32px);line-height:1.08;letter-spacing:-.035em}
+    .section-head p{max-width:620px;margin:0;color:var(--muted);font-size:13px}
+    .panel{padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(16,21,19,.88)}
+    .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .summary-card{padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel2)}
+    .summary-card h3{margin:0 0 8px;font-size:15px}
+    .summary-card p,.summary-card ul{margin:0;color:#c2ccc5;font-size:13px}
+    .summary-card ul{padding-left:18px}.summary-card li+li{margin-top:5px}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.055em;text-transform:uppercase;white-space:nowrap}
+    .pending{background:rgba(255,209,102,.12);border:1px solid rgba(255,209,102,.34);color:var(--amber)}
+    .safe{background:rgba(131,230,162,.1);border:1px solid rgba(131,230,162,.32);color:var(--green)}
+    .risk{background:rgba(255,141,131,.1);border:1px solid rgba(255,141,131,.34);color:var(--red)}
+    .table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:13px;background:var(--panel2);-webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse;text-align:left}
+    th,td{padding:11px 12px;border-bottom:1px solid #252e2a;vertical-align:top;font-size:12px}
+    th{position:sticky;top:0;background:#151b17;color:#c5d0c8;font:800 10px/1.35 ui-monospace,SFMono-Regular,monospace;letter-spacing:.08em;text-transform:uppercase}
+    tr:last-child td{border-bottom:0}
+    td:first-child{min-width:290px;font-weight:750;color:#edf3ee}
+    td:nth-child(2){min-width:190px}
+    td:nth-child(3){min-width:220px;color:#c2ccc5}
+    td:last-child{min-width:90px;text-align:center;color:var(--muted)}
+    .gmail-table td:first-child{min-width:240px}
+    .gmail-table td:nth-child(2){min-width:270px}
+    .subnote{margin:10px 2px 0;color:var(--muted);font-size:12px}
+    details{border:1px solid var(--line);border-radius:15px;background:rgba(12,16,14,.8);overflow:hidden}
+    details+details{margin-top:10px}
+    summary{cursor:pointer;list-style:none;padding:15px 17px;color:var(--text);font-weight:850}
+    summary::-webkit-details-marker{display:none}
+    summary:after{content:"＋";float:right;color:var(--lime);font-size:18px;line-height:1}
+    details[open]>summary:after{content:"−"}
+    .details-body{padding:0 14px 15px}
+    .ops-table td:first-child{min-width:170px}
+    .ops-table td:nth-child(2){min-width:300px}
+    .ops-table td:last-child{min-width:350px;text-align:left;color:#bdc7c0}
+    .notice{padding:16px;border:1px solid rgba(255,209,102,.32);border-radius:14px;background:rgba(255,209,102,.06);color:#e7dec5}
+    .notice strong{color:var(--amber)}
+    .security{padding:18px;border:1px solid rgba(131,230,162,.28);border-radius:16px;background:linear-gradient(120deg,rgba(131,230,162,.08),rgba(12,16,14,.8) 65%)}
+    .security h3{margin:0 0 7px;color:var(--green);font-size:16px}
+    .security p{margin:0;color:#c8d2cb;font-size:13px}
+    .refs{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .refs a{display:inline-flex;align-items:center;min-height:40px;padding:7px 11px;border:1px solid var(--line);border-radius:10px;background:#0d1210;font-size:12px;font-weight:750;text-decoration:none}
+    footer{display:flex;justify-content:space-between;gap:12px;margin-top:28px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}
+    @media(max-width:850px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.summary-grid{grid-template-columns:1fr}.ops-table td:last-child{min-width:300px}}
+    @media(max-width:560px){.wrap{padding:14px 12px 36px}.top{align-items:flex-start}.top-meta{gap:6px}.tag,.back{min-height:36px;padding:6px 9px;font-size:9px}.hero{border-radius:18px;padding:22px 17px}.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat{min-height:94px;padding:12px}.stat:last-child{grid-column:span 2}.section-head{display:block}.section-head p{margin-top:7px}.panel{padding:12px}.details-body{padding:0 9px 10px}th,td{padding:9px 10px}.ops-table td:first-child{min-width:135px}footer{display:block}footer span{display:block;margin-top:5px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+    @media print{html,body{background:#fff;color:#151515}.wrap{width:100%;padding:0}.hero,.panel,.stat,details,.table-wrap,.summary-card,.security,.notice{background:#fff;color:#151515;box-shadow:none;border-color:#bbb}.muted,.subnote,.section-head p,footer{color:#444}.stat b,.eyebrow,.security h3{color:#333}.top-meta,.back{display:none}details{break-inside:avoid}a{color:#222;text-decoration:underline}th{position:static;background:#eee;color:#111}td,th{color:#111;border-color:#ccc}.table-wrap{overflow:visible}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand">BT<span>MEDYA</span> / OPERASYON</div>
+      <div class="top-meta"><span class="tag">Yalnızca yönetici</span><a class="back" href="/admin/agency-os/">← Yönetim merkezine dön</a></div>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="report-title">
+        <div class="eyebrow">GÜNLÜK HABER & OPERASYON RAPORU · 07 KASIM 2026</div>
+        <h1 id="report-title">Haber odasının günlük özeti.</h1>
+        <p class="lede">Gmail, Balıkesir TV sitemap’i ve Google News RSS taramasının editör kuyruğu sonuçları ile canlı Worker/admin için alınan salt-okur operasyon snapshotı.</p>
+        <p class="hero-note"><strong>Bu, 7 Kasım 2026 saat 09:00 Europe/Istanbul çalışmasına ait statik rapordur; canlı izleme ekranı değildir.</strong> Rapor ve iç operasyon ayrıntıları yönetici oturumu arkasındadır.</p>
+      </section>
+
+      <section class="stats" aria-label="Sonuç göstergeleri">
+        <article class="stat"><b>22</b><span>Yeni admin editör taslağı</span></article>
+        <article class="stat"><b>5</b><span>İncelenen Gmail iletisi</span></article>
+        <article class="stat"><b>20</b><span>Balıkesir TV taslağı</span></article>
+        <article class="stat"><b>5</b><span>RSS tekrarı, yeniden eklenmedi</span></article>
+        <article class="stat"><b>0</b><span>Otomatik yayın · hata</span></article>
+      </section>
+
+      <section class="section" id="ozet">
+        <div class="section-head"><div><div class="eyebrow">01 / SONUÇ</div><h2>Çalışma penceresi</h2></div><p>Mevcut günlük zamanlama kullanıldı. Aynı kapsamdaki mevcut çalışma tekrar kurulmadı.</p></div>
+        <div class="summary-grid">
+          <article class="summary-card"><h3>Gmail ve taslak işlemi</h3><ul>
+            <li>İlk taramada 4 ileti / 3 thread, çalışma sırasında gelen 1 ek ileti ile toplam 5 ileti incelendi.</li>
+            <li>2 yeni editör taslağı oluşturuldu; 1 aynı thread tekrarı ayrı taslak yapılmadı.</li>
+            <li>2 ileti haber akışına alınmadı (haber olmayan/genel otomasyon özeti ve güvenlik iletisi).</li>
+            <li>İşlenen 5 ileti <code>BTMEDYA_SYNCED</code> etiketi aldı; <code>BTMEDYA_SYNC_FAILED</code> alan ileti olmadı.</li>
+            <li>Aynı Gmail filtresiyle son doğrulama: <strong>0 thread</strong>.</li>
+          </ul></article>
+          <article class="summary-card"><h3>Kaynak taraması ve güvenlik</h3><ul>
+            <li>Balıkesir TV sitemap’inden 20 yeni aday; source URL tekrarı 0.</li>
+            <li>Google News RSS’de 5 kayıt bulundu; tamamı sitemap başlıklarıyla tekrar olduğu için yeni draft eklenmedi.</li>
+            <li>22 kaydın tamamı <span class="badge pending">draft / pending editör incelemesi</span> durumunda bırakıldı.</li>
+            <li>Fotoğraf eki/kapak görseli: 0. Otomatik yayın: 0. Sosyal paylaşım: 0. Gmail/D1 işleme hatası: 0.</li>
+          </ul></article>
+        </div>
+      </section>
+
+      <section class="section" id="taslaklar">
+        <div class="section-head"><div><div class="eyebrow">02 / ADMIN EDİTÖR KUYRUĞU</div><h2>Eklenen 22 taslak</h2></div><p>Başlık ve kaynak korunmuştur. Tam kaynak metni bulunmayan kayıtlarda metin uydurulmadı; yalnızca editör notu bırakıldı. Tüm kayıtlarda fotoğraf eki yok.</p></div>
+        <details open>
+          <summary>Balıkesir TV sitemap’i · 20 taslak</summary>
+          <div class="details-body">
+            <div class="table-wrap"><table>
+              <thead><tr><th>Başlık</th><th>Kaynak</th><th>Editör durumu</th><th>Fotoğraf</th></tr></thead>
+              <tbody>
+                <tr><td>BALIKESİR'DE EMEKLİLER SOKAĞA ÇIKTI! SEYYANEN ZAM VE ADALET İSTEDİLER</td><td><a href="https://balikesirtv.com/haber/balikesirde-emekliler-sokaga-cikti-seyyanen-zam-14857" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Draft; hassas/siyasi kontrol gerekli</td><td>Yok</td></tr>
+                <tr><td>EDREMİT'İN İL OLMA HEDEFİNDE KÖRFEZ İTTİFAKI!</td><td><a href="https://balikesirtv.com/haber/edremitin-il-olma-hedefinde-korfez-baskanlari-birlesiyor-14856" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>KAZ DAĞLARI'NIN ZİRVESİ BEYAZA BÜRÜNDÜ!</td><td><a href="https://balikesirtv.com/haber/kaz-daglarinin-zirvelerine-sezonun-ilk-kari-dustu-14855" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>SENDİKA GERİLİMİNDE DARP İDDİASI! BÜYÜKŞEHİR'DE NELER OLUYOR?</td><td><a href="https://balikesirtv.com/haber/balikesir-buyuksehir-sendika-gerilimi-isci-haklari-14854" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hassas draft; iddia ve hukuki bağlam doğrulanmalı</td><td>Yok</td></tr>
+                <tr><td>KAPIDAĞ ORMANLARINDA GECE MESAİSİ!</td><td><a href="https://balikesirtv.com/haber/balikesir-kapidag-ormanlarinda-gece-denetimi-4-ilce-14853" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>ERDEK'TE YILBAŞI PAZARI KURULUYOR! BAŞVURU TARİHLERİ BELLİ OLDU</td><td><a href="https://balikesirtv.com/haber/erdek-yilbasi-pazari-basvuru-tarihleri-2026-14852" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>ERDEK'TE KAMYONETİN KASASI KOPTU!</td><td><a href="https://balikesirtv.com/haber/erdekte-balik-yuklu-kamyonetin-kasasi-koptu-14851" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Draft; olay ayrıntıları doğrulanmalı</td><td>Yok</td></tr>
+                <tr><td>MANYAS'TA YILLARDIR SÜREN SU SORUNUNA SON!</td><td><a href="https://balikesirtv.com/haber/manyasta-yillardir-suren-su-sorununa-son-14850" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>MECLİS'TE BALIKESİR DÜELLOSU!</td><td><a href="https://balikesirtv.com/haber/mecliste-comez-sordu-canbey-kaan-ucak-tartismasi-14849" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Draft; siyasi içerik doğrulanmalı</td><td>Yok</td></tr>
+                <tr><td>VALİ USTAOĞLU'NDAN ENSAR VAKFI'NA ZİYARET!</td><td><a href="https://balikesirtv.com/haber/vali-ustaoglu-ensar-vakfi-balikesir-subesini-ziyaret-etti-14848" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hassas draft; editör incelemesi gerekli</td><td>Yok</td></tr>
+                <tr><td>EDREMİT'TE KIZILAY HAFTASI</td><td><a href="https://balikesirtv.com/haber/edremitte-kizilay-haftasi-ogrencilerden-anlamli-mesaj-14847" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>BALIKESİR'DE 18 İLÇEDE ELEKTRİK KESİNTİSİ!</td><td><a href="https://balikesirtv.com/haber/balikesir-6-kasim-18-ilcede-elektrik-kesintisi-14846" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hizmet duyurusu draftı</td><td>Yok</td></tr>
+                <tr><td>BALIKESİRSPOR'DAN TARAFTARA İNDİRİM! MARATON TRİBÜNÜ BİLETİ 200 TL'YE DÜŞTÜ</td><td><a href="https://balikesirtv.com/haber/balikesirspor-gaziemir-macinda-maraton-tribunu-bilet-fiyatini-200-tlye-indirdi-onceden-bilet-alanlara-ucret-farki-iade-edilecek-14845" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Spor draftı; editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>GÖNEN'DE TARIMIN KALBİ ATACAK! 14. TARIM FUARI KAPILARINI AÇTI</td><td><a href="https://balikesirtv.com/haber/gonende-14-tarim-hayvancilik-fuari-basladi-14844" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>BALIKESİR'DE YOLA ÇIKACAKLAR DİKKAT! İŞTE TRAFİĞİN DEĞİŞTİĞİ 13 NOKTA</td><td><a href="https://balikesirtv.com/haber/balikesir-9-guzergah-13-noktada-yol-calismasi-14843" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hizmet duyurusu draftı</td><td>Yok</td></tr>
+                <tr><td>AFYONKARAHİSAR'DA KATLİAM! 8 KİŞİ HAYATINI KAYBETTİ: HAYATINI KAYBEDENLERİN KİMLİKLERİ BELİRLENDİ!</td><td><a href="https://balikesirtv.com/haber/ihsaniye-cinayetlerinin-sebebi-alacak-verecek-iddiasi-14841" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hassas asayiş draftı; olay/kimlik bilgileri doğrulanmalı</td><td>Yok</td></tr>
+                <tr><td>BALIKESİR'DE ADNAN MENDERES LİSESİ İÇİN YIKIM İHALESİ!</td><td><a href="https://balikesirtv.com/haber/balikesir-adnan-menderes-anadolu-lisesi-yikim-ihalesi-14842" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hukuki/kamu işlemi draftı</td><td>Yok</td></tr>
+                <tr><td>ERDEK BELEDİYESİ İHALESİNDE 6 AYLIK YASAK KARARI!</td><td><a href="https://balikesirtv.com/haber/erdek-belediyesi-ihalesinde-6-ay-yasak-14840" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Hukuki/kamu işlemi draftı</td><td>Yok</td></tr>
+                <tr><td>GÖNEN'DE YAĞIŞIN BİLANÇOSU AĞIR OLDU!</td><td><a href="https://balikesirtv.com/haber/gonen-findikli-koyu-yolunda-saganak-sonrasi-cokme-14839" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Editör incelemesi bekliyor</td><td>Yok</td></tr>
+                <tr><td>AYVALIK MYO'DA KRİTİK DEĞERLENDİRME TAMAMLANDI! GÖZLER AKREDİTASYON KARARINDA</td><td><a href="https://balikesirtv.com/haber/ayvalik-myo-medek-akreditasyon-saha-ziyareti-tamamlandi-14838" target="_blank" rel="noopener noreferrer">Balıkesir TV · kaydı aç ↗</a></td><td>Eğitim/hassas draftı; editör incelemesi gerekli</td><td>Yok</td></tr>
+              </tbody>
+            </table></div>
+            <p class="subnote">Her kayıt <code>news.status=draft</code> ve editör kuyruğunda <code>pending</code> durumunda bırakıldı.</p>
+          </div>
+        </details>
+        <details open>
+          <summary>Gmail kaynakları · 2 taslak</summary>
+          <div class="details-body">
+            <div class="table-wrap"><table class="gmail-table">
+              <thead><tr><th>Konu / başlık</th><th>Kaynak</th><th>Editör durumu</th><th>Fotoğraf</th></tr></thead>
+              <tbody>
+                <tr><td>Bahçeli’den Gündem Yaratacak Açıklama</td><td>LinkedIn / Balıkesir Merhaba Gazetesi — <a href="https://www.linkedin.com/feed/update/urn:li:activity:7523359439727321089/" target="_blank" rel="noopener noreferrer">etkinlik kaydı ↗</a></td><td>Siyasi draft; insan editör incelemesi gerekli, otomatik yayınlanamaz</td><td>Yok</td></tr>
+                <tr><td>Balıkesir’de 7 Kasım Planlı Elektrik Kesintileri: 15 İlçede Çalışma</td><td>Grok / btmedya-daily-content — <a href="https://grok.com/chat/9764e1c6-6e9d-4a3a-8cc6-1e3cf70ce11d" target="_blank" rel="noopener noreferrer">kaynak konuşması ↗</a></td><td>Kaynak metni kısmi; ilçe/mahalle ve saatler doğrulanmalı</td><td>Yok</td></tr>
+              </tbody>
+            </table></div>
+            <p class="subnote">Aynı LinkedIn thread’indeki eski ileti <code>duplicate_thread</code> olarak ayrı draft dışında tutuldu. Güvenlik iletisindeki doğrulama kodu rapora aktarılmadı.</p>
+          </div>
+        </details>
+      </section>
+
+      <section class="section" id="rss">
+        <div class="section-head"><div><div class="eyebrow">03 / KAYNAK TEKİLLEŞTİRME</div><h2>Sitemap ve Google News RSS</h2></div><p>Google News RSS proxy URL’leri, source URL olarak yeniden yazılmadı; başlık eşleşmesiyle tekrarlar elendi.</p></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Google News RSS başlığı</th><th>Sonuç</th></tr></thead>
+          <tbody>
+            <tr><td>BALIKESİR'DE YOLA ÇIKACAKLAR DİKKAT! İŞTE TRAFİĞİN DEĞİŞTİĞİ 13 NOKTA</td><td>Sitemap kaydıyla tekrar; yeni draft yok</td></tr>
+            <tr><td>BALIKESİR'DE 18 İLÇEDE ELEKTRİK KESİNTİSİ!</td><td>Sitemap kaydıyla tekrar; yeni draft yok</td></tr>
+            <tr><td>BALIKESİR'DE ADNAN MENDERES LİSESİ İÇİN YIKIM İHALESİ!</td><td>Sitemap kaydıyla tekrar; yeni draft yok</td></tr>
+            <tr><td>MECLİS'TE BALIKESİR DÜELLOSU!</td><td>Sitemap kaydıyla tekrar; yeni draft yok</td></tr>
+            <tr><td>BALIKESİR'DE EMEKLİLER SOKAĞA ÇIKTI! SEYYANEN ZAM VE ADALET İSTEDİLER</td><td>Sitemap kaydıyla tekrar; yeni draft yok</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section class="section" id="operasyon">
+        <div class="section-head"><div><div class="eyebrow">04 / CANLI WORKER & ADMIN</div><h2>Salt-okur operasyon snapshotı</h2></div><p>Bu gözlemler yalnızca çalışma anını temsil eder; geçmişe dönük tam tail veya gerçek zamanlı izleme iddiası değildir.</p></div>
+        <div class="table-wrap"><table class="ops-table">
+          <thead><tr><th>Kontrol</th><th>Gözlem</th><th>Kök neden / etki / geri alınabilir öneri</th></tr></thead>
+          <tbody>
+            <tr><td><strong>GET /api/health</strong></td><td>HTTP 200; örnek yanıt 3.790798 s. <code>ok:true</code>; CMS, R2, admin ve mail aktif; R2’de 178 medya objesi.</td><td><code>mediaSchema.ok:null</code>: D1 şema denetimi kota korumasıyla health yanıtından ayrılmış. Etki: bu snapshot D1 şema bütünlüğünü doğrulamıyor. Health/kota tasarımı ayrıca incelenebilir.</td></tr>
+            <tr><td><strong>Canlı deployment</strong></td><td>Sürüm <code>8af1301e-a8fc-47d1-8c44-ec21e312f103</code>; dağıtım %100. Zaman: 2026-11-07 00:06:54 UTC.</td><td>Health metadata’sındaki yüklenme zamanı aynı dağıtımla tutarlı. Rapor çalışmasında otomatik deploy veya rollback yapılmadı.</td></tr>
+            <tr><td><strong>Admin ana sayfa</strong></td><td><code>/admin/</code> Cloudflare Access giriş ekranına yönlendi.</td><td>Oturumsuz admin HTML’si test edilemedi; bu beklenen erişim koruması davranışı olarak kaydedildi.</td></tr>
+            <tr><td><strong>Korumalı admin API’leri</strong></td><td><code>/api/admin/news?status=draft</code>, <code>/api/admin/media</code> ve <code>/api/admin/messages</code> oturumsuz istekte 401 döndürdü.</td><td>Oturumsuz erişim engeli çalışıyor. Kimlik doğrulamalı test için kullanıcı oturumu gerekir; takeover veya doğrulama kodu istenmedi.</td></tr>
+            <tr><td><strong>admin_link_audit.py</strong></td><td>Repository ve çalışma alanında bulunamadı; çalıştırılamadı.</td><td>Kök neden: betik mevcut değil. Etki: özel pass/fail raporu üretilemedi. Geri alınabilir öneri: canonical betiği geri yüklemek veya raporda mevcut salt-okur denetim komutunun yolunu tanımlamak.</td></tr>
+            <tr><td><strong>site-denetimi.mjs</strong></td><td>Canlı crawler, <code>TypeError: terminated</code> ile sonlandı.</td><td>Uzak TLS soketi denetim sırasında kapandı; tam crawler sonucu tamamlanamadı. Kontrollü retry/backoff ve daha düşük eşzamanlılık önerildi; kod/deploy değişikliği yapılmadı.</td></tr>
+            <tr><td><strong>Observability issues</strong></td><td>4 aktif issue / 28 occurrence / 1 resolved. Aktifler: debug-endpoints 10, secret-files 15, wordpress 2, known-scanner-path 1.</td><td>Bunlar düşük riskli tarama sinyalleri; Worker runtime 5xx/timeout kanıtı değil. Son gözlemler 21 Ekim 2026 UTC civarı; güvenlik ayarı değiştirilmedi.</td></tr>
+            <tr><td><strong>Error tail / runtime metrikleri</strong></td><td>Salt-okur Observability query listesi boş; güvenilir geçmiş error tail, 5xx, timeout, bellek veya gövde sınırı sonucu alınamadı.</td><td>Gerçek zamanlı izleme iddiası yok. Health örneğinde bu uyarıların görünmemesi, geçmişte hiç oluşmadıklarını kanıtlamaz. Mevcut query/tail entegrasyonu ayrıca yapılandırılabilir.</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section class="section">
+        <div class="notice"><strong>Operasyonel sınır:</strong> Bu rapor çalışmasında otomatik yayın, sosyal paylaşım, IndexNow bildirimi, deploy, rollback, Cloudflare güvenlik ayarı veya mevcut Haber İstihbaratı / Merak Radarı cron değişikliği yapılmadı. Siyasi, hukuki, asayiş, eğitim/sağlık ve kamu işlemi niteliğindeki haberler insan editör onayında kaldı.</div>
+      </section>
+
+      <section class="section" id="kaynaklar">
+        <div class="section-head"><div><div class="eyebrow">05 / REFERANSLAR</div><h2>Kaynak uçlar</h2></div></div>
+        <div class="security"><h3>Yönetici erişimi ve kaynak doğrulaması</h3><p>Rapor içindeki tüm taslaklar editör incelemesi bekler; kaynak metni bulunmayan kayıtlarda içerik uydurulmamıştır. Admin rotaları mevcut Worker oturum korumasından geçer.</p>
+          <div class="refs">
+            <a href="https://btmedya.com.tr/api/health" target="_blank" rel="noopener noreferrer">Canlı health ↗</a>
+            <a href="https://www.balikesirtv.com/sitemap-news.xml" target="_blank" rel="noopener noreferrer">Balıkesir TV sitemap ↗</a>
+            <a href="https://news.google.com/rss/search?q=site%3Abalikesirtv.com%20Bal%C4%B1kesir&hl=tr&gl=TR&ceid=TR%3Atr" target="_blank" rel="noopener noreferrer">Google News RSS ↗</a>
+            <a href="https://btmedya.com.tr/api/admin/news?status=draft" target="_blank" rel="noopener noreferrer">Korumalı admin draft API ↗</a>
+            <a href="https://btmedya.com.tr/admin/" target="_blank" rel="noopener noreferrer">BTMEDYA admin ↗</a>
+            <a href="https://github.com/busetuncay1029-ai/Btmedya-db" target="_blank" rel="noopener noreferrer">Worker repository ↗</a>
+          </div>
+        </div>
+      </section>
+    </main>
+    <footer><span>BTMEDYA · İç operasyon raporu</span><span>Çalışma tarihi: 7 Kasım 2026 · 09:00 Europe/Istanbul</span></footer>
+  </div>
+</body>
+</html>

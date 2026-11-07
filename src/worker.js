@@ -2757,6 +2757,14 @@ async function servisEt(request, env) {
   if (!h.has('cache-control') || res.status === 404) h.set('cache-control', onbellek(url.pathname));
   else h.set('cache-control', onbellek(url.pathname));
 
+  // İç operasyon raporu hassas deployment ve güvenlik gözlemleri içerir;
+  // oturum değişiminde tarayıcı/ara önbellekten tekrar gösterilmemelidir.
+  if (url.pathname === '/admin/operasyon-raporu' || url.pathname.startsWith('/admin/operasyon-raporu/')) {
+    h.set('cache-control', 'private, no-store, max-age=0');
+    h.set('pragma', 'no-cache');
+    h.set('x-robots-tag', 'noindex, nofollow');
+  }
+
   if (res.status === 200 && HARITALAR.has(url.pathname) && env.DB) {
     const metin = await res.text();
     const yeni = await haritayaPanelHaberleriniEkle(url.pathname, metin, env, url.origin).catch(e => {
