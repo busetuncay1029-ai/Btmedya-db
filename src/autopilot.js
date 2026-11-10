@@ -18,6 +18,7 @@ import { processMetricoolQueue } from "./metricool-scheduler.js";
 import { kaynakBaglaHaber, kaynakKaydet, kaynakBagla } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak } from "./sosyal-dedupe.js";
 import { normalizeContentTaxonomy, saveContentTaxonomy } from "./content-taxonomy.js";
+import { publicationGuard, appendMediaRightsNote } from "./editorial-guardrails.js";
 
 const KV_KEY = "autopilot:policy";
 
@@ -78,10 +79,10 @@ function trimPolicy(p){
 }
 
 export async function autopilotPolicy(env){
-  if(!env.KV) return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH==='true'||DEFAULT_POLICY.autoPublish};
+  if(!env.KV) return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH==='false'?false:(env.BTMEDYA_AUTO_PUBLISH==='true'||DEFAULT_POLICY.autoPublish)};
   const raw=await env.KV.get(KV_KEY).catch(()=>null);
-  if(!raw) return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH==='true'||DEFAULT_POLICY.autoPublish};
-  try{const p=trimPolicy(JSON.parse(raw));if(env.BTMEDYA_AUTO_PUBLISH==='true')p.autoPublish=true;return p;}catch{return {...DEFAULT_POLICY};}
+  if(!raw) return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH==='false'?false:(env.BTMEDYA_AUTO_PUBLISH==='true'||DEFAULT_POLICY.autoPublish)};
+  try{const p=trimPolicy(JSON.parse(raw));if(env.BTMEDYA_AUTO_PUBLISH==='false')p.autoPublish=false;else if(env.BTMEDYA_AUTO_PUBLISH==='true')p.autoPublish=true;return p;}catch{return {...DEFAULT_POLICY,autoPublish:env.BTMEDYA_AUTO_PUBLISH!=='false'};}
 }
 
 export async function setAutopilotPolicy(env,value){
@@ -152,7 +153,15 @@ function safeSlug(s){
 }
 
 function sensitiveText(title,excerpt){ return SENSITIVE.test(String(title||"")+" "+String(excerpt||"")); }
-
+function categoryCoverKey(category){
+  const c=String(category||"").toLocaleLowerCase("tr-TR");
+  const slug=/spor/.test(c)?"spor":/ekonomi|ticaret|tarım|fiyat/.test(c)?"ekonomi":/eğitim|egitim/.test(c)?"egitim":/kültür|kultur|sanat/.test(c)?"kultur":/sağlık|saglik/.test(c)?"saglik":/teknoloji|yapay|ai/.test(c)?"teknoloji":/dünya|dunya/.test(c)?"dunya":/türkiye|turkiye/.test(c)?"turkiye":/yaşam|yasam/.test(c)?"yasam":"balikesir";
+  return "static/kategori-kapak/"+slug+".webp";
+}
+function mediaUrl(key){
+  const k=String(key||"");
+  return k.startsWith("static/")?"/assets/"+k.slice(7):"/pub/"+encodeURIComponent(k);
+}
 async function aiDraft(env,candidate){
   const title=String(candidate.title||"").trim();
   const excerpt=String(candidate.excerpt||"").trim();
@@ -206,10 +215,13 @@ async function chooseMedia(env,category,policy){
   ).bind(category,wantsAi?1:0).all().catch(()=>({results:[]}))).results||[];
   if(!rows.length) return null;
   const clean=rows.filter(x=>!SENSITIVE.test(String(x.title||"")));
-  const pool=clean.length?clean:rows;
+  const pool=(clean.length?clean:rows).filter(x=>Boolean(x.ai_generated)||String(x.key||"").startsWith("static/"));
   const image=pool.find(x=>String(x.mime||"").startsWith("image/"))||null;
   const video=pool.find(x=>String(x.mime||"").startsWith("video/"))||null;
-  if(!image && !video) return null;
+  if(!image && !video){
+    const key=categoryCoverKey(category);
+    return {id:null,key,mime:"image/webp",title:"BTMEDYA kategori kapağı",ai_generated:false,media_rights:"btmedya",alt_text:String(category||"Haber")+" kategori kapağı",public_url:mediaUrl(key),cover_key:key,cover_url:mediaUrl(key),social_key:key,social_url:mediaUrl(key),social_mime:"image/webp"};
+  }
   const primary=image||video;
   return {
     id:primary.id,
@@ -217,12 +229,13 @@ async function chooseMedia(env,category,policy){
     mime:primary.mime||"",
     title:primary.title||"",
     ai_generated:Boolean(primary.ai_generated),
+    media_rights: primary.ai_generated ? "ai_original" : String(primary.key||"").startsWith("static/") ? "btmedya" : "",
     alt_text:primary.alt_text||"",
-    public_url:"/pub/"+encodeURIComponent(primary.key),
+    public_url:mediaUrl(primary.key),
     cover_key:image?.key||"",
-    cover_url:image?"/pub/"+encodeURIComponent(image.key):"",
+    cover_url:image?mediaUrl(image.key):"",
     social_key:video?.key||image?.key||"",
-    social_url:video?"/pub/"+encodeURIComponent(video.key):(image?"/pub/"+encodeURIComponent(image.key):""),
+    social_url:video?mediaUrl(video.key):(image?mediaUrl(image.key):""),
     social_mime:video?.mime||image?.mime||""
   };
 }
@@ -235,6 +248,12 @@ async function createOrUpdateNews(env,candidate,draft,publish,media){
   const video=media?.social_mime && String(media.social_mime).startsWith("video/") ? media.social_url : "";
   const category=categoryFor(candidate);
   const taxonomy=normalizeContentTaxonomy({},category);
+  const mediaRights=String(media?.media_rights||"");
+  const baseNote="BTMEDYA Autopilot · kaynak korundu · ";
+  const initialNote=appendMediaRightsNote(baseNote+(publish?"otomatik yayın kararı":"editör onayı gerekli"),mediaRights);
+  const guard=publicationGuard({slug,title:draft.title,excerpt:draft.excerpt,body:draft.body,source_url:candidate.source_url||candidate.link,cover_url:cover,archive_note:initialNote,media_rights:mediaRights});
+  if(publish && !guard.ok) publish=false;
+  const finalNote=appendMediaRightsNote(baseNote+(publish?"otomatik yayın kararı":"yayın kapısı geçilmedi; editör/medya hakkı incelemesi gerekli"),mediaRights);
   await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at)
     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     ON CONFLICT(slug) DO UPDATE SET
@@ -243,11 +262,11 @@ async function createOrUpdateNews(env,candidate,draft,publish,media){
       source_url=excluded.source_url,original_date=excluded.original_date,archive_note=excluded.archive_note,updated_at=excluded.updated_at`)
     .bind(slug,draft.title,draft.excerpt,draft.body,category,"BTMEDYA Otomatik Editör",cover,video,publish?"published":"draft",publish?now:null,
           String(candidate.source_url||candidate.link||"").slice(0,2000),String(candidate.original_date||candidate.date||"").slice(0,64),
-          "BTMEDYA Autopilot · kaynak korundu · "+(publish?"otomatik yayın kararı":"editör onayı gerekli"),now).run();
+          finalNote,now).run();
   await saveContentTaxonomy(env,'news',slug,taxonomy);
   const sourceUrl=String(candidate.source_url||candidate.link||'').trim();
   if(sourceUrl) await kaynakBaglaHaber(env,sourceUrl,slug).catch(()=>{});
-  return {slug,status:publish?"published":"draft",cover_url:cover,video_url:video};
+  return {slug,status:publish?"published":"draft",cover_url:cover,video_url:video,guard,media_rights:mediaRights};
 }
 
 async function createSocialDraft(env,news,media,policy,runId){
@@ -531,7 +550,9 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
     const news=await createOrUpdateNews(env,candidate,draft,auto,media);
     if(!news) continue;
     result.created_news++;
-    if(auto) result.published_news++;
+    const actuallyPublished=news.status==="published";
+    if(actuallyPublished) result.published_news++;
+    const finalNeedsApproval=!actuallyPublished;
 
     let social=null;
     if(news.status==="published" && result.social_created < policy.maxSocialPerRun){
@@ -543,11 +564,11 @@ export async function runAutopilot(env,{force=false,limit,skipRecentIntelligence
       slug:news.slug,
       source_url:candidate.source_url,title:draft.title,category,
       score:Number(candidate.score||0),risk:Number(candidate.risk||0),
-      status:news.status,needsApproval,media:media?{key:media.key,ai_generated:media.ai_generated}:null,
+      status:news.status,needsApproval:finalNeedsApproval,media:media?{key:media.key,ai_generated:media.ai_generated,rights:media.media_rights||""}:null,
       social
     });
-    await log(env,runId,"news",news.slug,news.status,auto?"kriterler sağlandı":"editör onayı gerektiriyor",{
-      source:candidate.source_url,score:candidate.score,category,media:media?.key||""
+    await log(env,runId,"news",news.slug,news.status,actuallyPublished?"kriterler sağlandı":"yayın kapısı geçilmedi; editör onayı gerekiyor",{
+      source:candidate.source_url,score:candidate.score,category,media:media?.key||"",seo:news.guard?.seo?.score||0,media_rights:news.media_rights||""
     });
   }
 

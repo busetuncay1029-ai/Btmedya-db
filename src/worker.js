@@ -32,6 +32,7 @@ import { zincirDurumu } from "./yayin-zinciri.js";
 import { kaynakKaydet, kaynakListele, kaynakGuncelle, kaynakOzeti, kaynakBaglaHaber, ensureKaynakMasasiTables } from "./kaynak-masasi.js";
 import { sosyalTekillemeAyir, sosyalTekillemeBagla, sosyalTekillemeBirak, sosyalTekillemeSil, ensureSosyalParmakTablosu } from "./sosyal-dedupe.js";
 import { gmailIntegrationApi } from "./gmail-ingest.js";
+import { publicationGuard, appendMediaRightsNote } from "./editorial-guardrails.js";
 /* BTMEDYA Worker — birleşik API
  * 1) Haber CMS  (D1 tablo: news)        — /api/news, /api/admin/news
  * 2) Medya Kasası (D1 tablo: media, R2) — /api/media*, /api/public/media, /api/export, /media/*, /api/login, /api/logout
@@ -517,11 +518,14 @@ async function newsApi(request, env, url, ctx){
     const title=String(b.title).trim().slice(0,240);
     const slug=String(b.slug).trim().replace(/[^a-z0-9-]/gi,'-').replace(/-+/g,'-').replace(/^-|-$/g,'').slice(0,180);
     if(!title || !slug) return json({ok:false,error:'Geçersiz başlık veya slug'},400);
-    const status=b.status==='published'?'published':'draft';
+    const requestedStatus=b.status==='published'?'published':'draft';
     const now=new Date().toISOString();
     const sourceUrl=String(b.source_url||'').trim().slice(0,2000);
     const originalDate=String(b.original_date||'').trim().slice(0,64);
-    const archiveNote=String(b.archive_note||'').trim().slice(0,2000);
+    const archiveNote=appendMediaRightsNote(String(b.archive_note||'').trim(),b.media_rights);
+    const guard=publicationGuard({slug,title,excerpt:b.excerpt,body:b.body,source_url:sourceUrl,cover_url:b.cover_url,archive_note:archiveNote,media_rights:b.media_rights});
+    if(requestedStatus==='published' && !guard.ok) return json({ok:false,error:'Yayın güvenlik kapısı geçilemedi',publication_blocked:true,seo:guard.seo,media:guard.media,reasons:guard.reasons},422);
+    const status=requestedStatus==='published'?'published':'draft';
     const taxonomy=normalizeTaxonomy(b,b.category);
     try{
       await env.DB.prepare(`INSERT INTO news(slug,title,excerpt,body,category,author,cover_url,video_url,status,published_at,source_url,original_date,archive_note,updated_at)
@@ -535,7 +539,7 @@ async function newsApi(request, env, url, ctx){
     await saveContentTaxonomy(env,'news',slug,taxonomy);
     if(sourceUrl) await kaynakBaglaHaber(env,sourceUrl,slug).catch(()=>{});
     if(status==='published') indexNowBildir(ctx, url.origin, slug);
-    return json({ok:true,slug,status,taxonomy});
+    return json({ok:true,slug,status,taxonomy,seo:guard.seo,media:guard.media});
   }
 
   /* Admin: haber güncelle / sil (ID ile) */
@@ -552,22 +556,28 @@ async function newsApi(request, env, url, ctx){
     if(request.method==='PATCH'){
       const b=await request.json();
       const now=new Date().toISOString();
-      const status=b.status==='published'?'published':'draft';
-      const taxonomy=normalizeTaxonomy(b,b.category); const values=[b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,String(b.source_url||'').trim().slice(0,2000),String(b.original_date||'').trim().slice(0,64),String(b.archive_note||'').trim().slice(0,2000),now,id];
+      const requestedStatus=b.status==='published'?'published':'draft';
+      const sourceUrl=String(b.source_url||'').trim().slice(0,2000);
+      const archiveNote=appendMediaRightsNote(String(b.archive_note||'').trim(),b.media_rights);
+      const current=await env.DB.prepare('SELECT slug FROM news WHERE id=?').bind(id).first().catch(()=>null);
+      const guard=publicationGuard({slug:current?.slug,title:b.title,excerpt:b.excerpt,body:b.body,source_url:sourceUrl,cover_url:b.cover_url,archive_note:archiveNote,media_rights:b.media_rights});
+      if(requestedStatus==='published' && !guard.ok) return json({ok:false,error:'Yayın güvenlik kapısı geçilemedi',publication_blocked:true,seo:guard.seo,media:guard.media,reasons:guard.reasons},422);
+      const status=requestedStatus==='published'?'published':'draft';
+      const taxonomy=normalizeTaxonomy(b,b.category); const values=[b.title||'',b.excerpt||'',b.body||'',b.category||'',b.author||'',b.cover_url||'',b.video_url||'',status,status==='published'?(b.published_at||now):null,sourceUrl,String(b.original_date||'').trim().slice(0,64),archiveNote,now,id];
       try{
         await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,source_url=?,original_date=?,archive_note=?,updated_at=? WHERE id=?').bind(...values).run();
       }catch(e){
         await env.DB.prepare('UPDATE news SET title=?,excerpt=?,body=?,category=?,author=?,cover_url=?,video_url=?,status=?,published_at=?,updated_at=? WHERE id=?')
           .bind(...values.slice(0,9),now,id).run();
       }
-      const current=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
-      if(current?.slug) await saveContentTaxonomy(env,'news',current.slug,taxonomy);
+      const stored=await env.DB.prepare('SELECT slug,source_url FROM news WHERE id=?').bind(id).first().catch(()=>null);
+      if(stored?.slug) await saveContentTaxonomy(env,'news',stored.slug,taxonomy);
       if(status==='published'){
-        const r=current;
+        const r=stored;
         if(r?.source_url) await kaynakBaglaHaber(env,r.source_url,r.slug).catch(()=>{});
         indexNowBildir(ctx, url.origin, r?.slug);
       }
-      return json({ok:true,taxonomy});
+      return json({ok:true,taxonomy,seo:guard.seo,media:guard.media});
     }
     if(request.method==='DELETE'){
       const row=await env.DB.prepare('SELECT slug FROM news WHERE id=?').bind(id).first().catch(()=>null);
