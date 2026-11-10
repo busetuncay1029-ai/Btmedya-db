@@ -287,3 +287,39 @@ body.ana-sade .ai-visual img{filter:saturate(.76) contrast(1.05)}
   body.ana-sade .ai-grid article h3{margin-top:28px;font-size:25px}
   body.ana-sade .ai-grid article p{font-size:11px}
 }
+
+/* NATIONAL NEWSROOM TYPOGRAPHY / 11 NOV 2026
+   High-contrast editorial system: black field, white information, red signal.
+   Manrope carries reading text; Anton carries headlines and section labels. */
+@font-face{font-family:'BT News Anton';font-style:normal;font-weight:400 900;font-display:swap;src:url('/assets/fonts/anton-tr.woff2') format('woff2')}
+:root{--news-black:#090a0b;--news-black-soft:#111315;--news-white:#fff;--news-paper:#f3f4f5;--news-muted:#aeb4ba;--news-line:rgba(255,255,255,.16);--news-red:#d7192f;--news-red-dark:#a90f23;--news-red-bright:#ef334b}
+body.ana-sade{background:var(--news-black)!important;color:var(--news-white);font-family:Manrope,'Segoe UI',Arial,sans-serif!important}
+body.ana-sade .topbar,body.ana-sade .vitrine-status,body.ana-sade .bt-breaking,body.ana-sade .ticker,body.ana-sade footer{background:var(--news-black)!important}
+body.ana-sade .topbar{border-bottom:1px solid var(--news-line)!important;backdrop-filter:none}
+body.ana-sade .brand img{filter:none;opacity:1}
+body.ana-sade .top-meta,body.ana-sade .section-side,body.ana-sade .news-body p,body.ana-sade .manifesto-copy,body.ana-sade .service-grid article p{color:var(--news-muted)}
+body.ana-sade .top-meta i,body.ana-sade .vitrine-dot{background:var(--news-red);box-shadow:0 0 14px rgba(215,25,47,.55)}
+body.ana-sade .top-cta,body.ana-sade .language-switch a[aria-current=page]{color:var(--news-white);border-color:var(--news-red)}
+body.ana-sade .top-cta:hover{background:var(--news-red);color:var(--news-white);box-shadow:0 12px 30px rgba(215,25,47,.22)}
+body.ana-sade .giris-v5{background:var(--news-black)!important;border-color:var(--news-line)}
+body.ana-sade .giris-v5:before{background:repeating-conic-gradient(from -8deg,transparent 0 9deg,rgba(215,25,47,.96) 9deg 15deg,transparent 15deg 25deg)}
+body.ana-sade .giris-v5-kat-ust,body.ana-sade .kicker,body.ana-sade .section-head .kicker,body.ana-sade .news-body small,body.ana-sade .service-grid span,body.ana-sade .source-grid span,body.ana-sade .archive-tag{color:var(--news-red-bright)!important}
+body.ana-sade .section-head:after{background:var(--news-red)}
+body.ana-sade .display,body.ana-sade .section-head h2,body.ana-sade .manifesto h2,body.ana-sade .story-copy h2,body.ana-sade .ai-copy h2,body.ana-sade .news-card .news-body h3,body.ana-sade .service-grid article h3,body.ana-sade .portfoy-metin h3,body.ana-sade .ai-grid article h3{font-family:'BT News Anton',Anton,Manrope,sans-serif!important;font-weight:400!important;letter-spacing:.005em!important;text-transform:uppercase}
+body.ana-sade .display,body.ana-sade .section-head h2,body.ana-sade .manifesto h2,body.ana-sade .story-copy h2,body.ana-sade .ai-copy h2{line-height:.9}
+body.ana-sade .display span,body.ana-sade .display em,body.ana-sade .manifesto h2 span,body.ana-sade .story-copy h2 span,body.ana-sade .ai-copy h2 em{color:var(--news-red-bright)!important}
+body.ana-sade .news-card,body.ana-sade .service-grid article,body.ana-sade .portfoy-kart,body.ana-sade .archive-live-card,body.ana-sade .ai-grid article,body.ana-sade .source-grid a{background:var(--news-black-soft)!important;border-color:var(--news-line)!important;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+body.ana-sade .news-card:hover,body.ana-sade .portfoy-kart:hover,body.ana-sade .archive-live-card:hover{border-color:var(--news-red)!important}
+body.ana-sade .news-card:before{background:var(--news-red)!important}
+body.ana-sade .news-card .news-body small:before{background:var(--news-red)}
+body.ana-sade .news-card .news-body h3{font-size:clamp(26px,2.5vw,42px);line-height:.94}
+body.ana-sade .news-card.featured .news-body h3{font-size:clamp(38px,4.4vw,70px);line-height:.88}
+body.ana-sade .ai-section{border-color:rgba(215,25,47,.48)!important}
+body.ana-sade .ai-orb{background:radial-gradient(circle,var(--news-red-bright) 0,#7e101f 42%,#090a0b 74%)!important;box-shadow:0 0 70px rgba(215,25,47,.28)}
+body.ana-sade .ai-grid article:after{color:var(--news-red-bright)}
+body.ana-sade .ai-copy .kicker:before{border-color:var(--news-red);color:var(--news-red-bright)}
+body.ana-sade .ai-tags span{border-color:rgba(215,25,47,.55);color:var(--news-red-bright)}
+body.ana-sade .button-dark,body.ana-sade .filter:hover,body.ana-sade .filter.active,body.ana-sade .portfoy-sekme:hover,body.ana-sade .portfoy-sekme.secili{background:var(--news-red)!important;border-color:var(--news-red)!important;color:var(--news-white)!important}
+body.ana-sade .bt-breaking{border-top-color:var(--news-red)!important}
+body.ana-sade .bt-breaking b,body.ana-sade .ticker-track span:after{color:var(--news-red-bright)}
+@media(max-width:720px){body.ana-sade .display,body.ana-sade .section-head h2,body.ana-sade .ai-copy h2{letter-spacing:.01em!important}body.ana-sade .news-card .news-body h3{font-size:clamp(28px,8.6vw,42px);line-height:.92}body.ana-sade .news-card.featured .news-body h3{font-size:clamp(38px,11.5vw,58px);line-height:.88}}
