@@ -272,6 +272,18 @@ function mediaPublicUrl(env,key){
 
 function isVideoKey(key){return /\.(mp4|mov|m4v|webm)$/i.test(String(key||""));}
 
+async function mediaExists(env,key){
+  const k=String(key||"").trim();
+  if(!k)return false;
+  if(k.startsWith("static/"))return true;
+  if(!env.MEDIA)return false;
+  return Boolean(await env.MEDIA.head(k).catch(()=>null));
+}
+
+function mediaFailure(msg){
+  return /media|image|photo|video|görsel|dosya|file|404|invalid/i.test(String(msg||""));
+}
+
 async function publishFacebook(env,conn,job,token){
   const textValue=String(job.body||job.title||"").slice(0,63206);
   const page=encodeURIComponent(String(conn.page_id));
@@ -391,7 +403,8 @@ export async function processDirectSocialQueue(env,limit=10){
       const msg=clean(e?.message||e,1500);
       const terminal=attempts>=5;
       await env.DB.prepare("UPDATE social_direct_jobs SET status=?,last_error=?,updated_at=? WHERE id=?").bind(terminal?"error":"queued",msg,new Date().toISOString(),job.id).run();
-      await env.DB.prepare("UPDATE social_direct_connections SET last_error=?,status=?,updated_at=? WHERE id=?").bind(msg,terminal?"error":"active",new Date().toISOString(),job.connection_id).run();
+      // Eksik/uygunsuz medya tek bir işi bitirir; bağlantıyı kapatmaz.
+      await env.DB.prepare("UPDATE social_direct_connections SET last_error=?,status=?,updated_at=? WHERE id=?").bind(msg,mediaFailure(msg)?"active":(terminal?"error":"active"),new Date().toISOString(),job.connection_id).run();
       result.failed++;result.items.push({id:job.id,status:terminal?"error":"retry",error:msg,attempts});
     }
   }
@@ -435,6 +448,8 @@ export async function queueAutopilotSocial(env,{
   const connections=q.results||[];
   if(!connections.length) return {ok:false,connected:false,queued:0,reason:"Doğrudan bağlı sosyal hesap bulunamadı"};
   const key=clean(mediaKey,500);
+  if(key && !(await mediaExists(env,key)))
+    return {ok:false,connected:true,queued:0,reason:"Sosyal medya dosyası medya kasasında bulunamadı; iş kuyruğa alınmadı."};
   const eligible=connections.filter(c=>{
     if((c.provider==="instagram")&&!key) return false;
     if((c.provider==="tiktok"||c.provider==="youtube")&&!isVideoKey(key)) return false;
