@@ -21,7 +21,10 @@ permissions:
 jobs:
   smoke:
     name: 3 viewport live UX smoke
-    runs-on: ubuntu-latest
+    # ubuntu-latest yeni imajlara taşındığında Playwright 1.55'in
+    # desteklemediği ubuntu26.04-x64'e düşebiliyor. Chromium kurulumu için
+    # desteklenen ve deterministik GitHub imajını sabitliyoruz.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
