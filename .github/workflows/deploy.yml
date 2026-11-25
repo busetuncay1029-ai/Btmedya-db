@@ -39,7 +39,6 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
       - name: Cloudflare token seç
         uses: ./.github/actions/cf-token-sec
         with:
@@ -239,7 +238,7 @@ jobs:
           test -s public/admin/admin-menu.css
           node --check public/admin/admin-menu.js
           grep -q '/assets/logo/bt-amblem-256.png' public/admin/manifest.webmanifest
-          grep -q '/assets/favicon.png' public/admin/manifest.webmanifest
+          grep -q '/assets/favicon-v5.png' public/admin/manifest.webmanifest
           grep -q '/admin/giris/?source=pwa' public/admin/manifest.webmanifest
           grep -q 'HABER' public/admin/admin-menu.js
           grep -q 'SOSYAL MEDYA' public/admin/admin-menu.js
