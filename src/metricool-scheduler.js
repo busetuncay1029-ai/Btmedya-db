@@ -64,6 +64,8 @@ async function yapayZekaMi(env, key){
 }
 
 async function takipTablosu(env){
+  const readyKey="schema:metricool-delivery:v2";
+  if(env.KV && await env.KV.get(readyKey).catch(()=>null)) return;
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS metricool_gonderim (
     post_id TEXT PRIMARY KEY,
     metricool_id TEXT NOT NULL DEFAULT '',
@@ -75,6 +77,7 @@ async function takipTablosu(env){
   )`).run();
   try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0").run(); } catch {}
   try { await env.DB.prepare("ALTER TABLE metricool_gonderim ADD COLUMN retryable INTEGER NOT NULL DEFAULT 1").run(); } catch {}
+  if(env.KV) await env.KV.put(readyKey,"1",{expirationTtl:86400}).catch(()=>{});
 }
 
 function youtubeDataFor(providers,row){

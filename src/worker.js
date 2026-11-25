@@ -406,24 +406,12 @@ async function newsApi(request, env, url, ctx){
       return mediaLike.test(key)||/^(image|video|audio)\//i.test(mime);
     }).length:0;
     const mediaSchemaRequired=['key','original_name','mime','size','category','tags','title','description','alt_text','published','slot','sort_order','created_at','updated_at','ai_generated'];
-    let mediaSchema={ok:false,missing:mediaSchemaRequired,error:null};
+    let mediaSchema={ok:null,missing:[],error:'D1 schema probe deferred to the read-only control-plane audit'};
     const mediaSchemaCacheKey='health:media-schema:v2';
     const cachedMediaSchema=env.KV ? await env.KV.get(mediaSchemaCacheKey,'json').catch(()=>null) : null;
     if(cachedMediaSchema && typeof cachedMediaSchema.ok==='boolean'){
       mediaSchema=cachedMediaSchema;
-    }else if(env.DB){
-      try{
-        const schema=await env.DB.prepare("PRAGMA table_info(media)").all();
-        const names=new Set((schema.results||[]).map(x=>String(x.name||'')));
-        const missing=mediaSchemaRequired.filter(x=>!names.has(x));
-        mediaSchema={ok:missing.length===0,missing,error:null};
-        if(env.KV) await env.KV.put(mediaSchemaCacheKey,JSON.stringify(mediaSchema),{expirationTtl:300}).catch(()=>{});
-      }catch(e){
-        // Health must remain useful when D1 is temporarily quota-protected or busy.
-        mediaSchema={ok:null,missing:[],error:'D1 schema probe deferred: '+String(e?.message||e).slice(0,200)};
-        if(env.KV) await env.KV.put(mediaSchemaCacheKey,JSON.stringify(mediaSchema),{expirationTtl:30}).catch(()=>{});
-      }
-    }else mediaSchema={ok:false,missing:mediaSchemaRequired,error:'D1 not configured'};
+    }else if(!env.DB) mediaSchema={ok:false,missing:mediaSchemaRequired,error:'D1 not configured'};
     return json({
       ok:true,service:'btmedya',cms:!!env.DB,r2:!!env.MEDIA,
       mediaSchema,
