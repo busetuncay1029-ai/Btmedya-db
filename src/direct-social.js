@@ -105,6 +105,8 @@ export async function saveOAuthConnection(env,{workspace_type="agency",workspace
 
 async function ensureDirectTables(env){
   if(!env.DB)return;
+  const readyKey="schema:direct-social:v3";
+  if(env.KV && await env.KV.get(readyKey).catch(()=>null)) return;
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS social_direct_connections (
     id TEXT PRIMARY KEY,workspace_type TEXT NOT NULL DEFAULT 'client',workspace_id TEXT NOT NULL,
     provider TEXT NOT NULL,external_id TEXT NOT NULL,account_name TEXT NOT NULL DEFAULT '',
@@ -149,6 +151,7 @@ async function ensureDirectTables(env){
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_jobs_due ON social_direct_jobs(status,scheduled_at)").run().catch(()=>{});
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_jobs_connection ON social_direct_jobs(connection_id)").run().catch(()=>{});
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_social_direct_jobs_source ON social_direct_jobs(connection_id,source_slug,content_hash)").run().catch(()=>{});
+  if(env.KV) await env.KV.put(readyKey,"1",{expirationTtl:86400}).catch(()=>{});
 }
 async function graph(env,path,opts={}){
   const url="https://graph.facebook.com/"+graphVersion(env)+path;

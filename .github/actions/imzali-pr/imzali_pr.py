@@ -107,6 +107,14 @@ def dal_hazirla(taban: str) -> None:
                  "Depo kural seti dal oluşturmayı engelliyorsa automation/** dallarını oluşturma kuralından hariç tutun.")
 
 
+def dal_head() -> str:
+    kod, yanit = istek("GET", f"{API}/repos/{REPO}/git/ref/heads/{DAL}")
+    sha = yanit.get("object", {}).get("sha")
+    if kod != 200 or not sha:
+        sys.exit(f"::error::{DAL} dalının güncel ucu okunamadı (HTTP {kod}): {yanit.get('message', '')}")
+    return sha
+
+
 def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) -> str:
     sorgu = """mutation($girdi: CreateCommitOnBranchInput!) {
       createCommitOnBranch(input: $girdi) { commit { oid url } } }"""
@@ -121,6 +129,15 @@ def commit_at(onceki: str, eklenen: list[str], silinen: list[str], baslik: str) 
     }
     kod, yanit = istek("POST", GRAPHQL, {"query": sorgu, "variables": {"girdi": girdi}})
     commit = ((yanit.get("data") or {}).get("createCommitOnBranch") or {}).get("commit")
+    if kod != 200 or not commit:
+        # Eski bir kuyruğa alınmış run, Actions concurrency grubuna rağmen
+        # aynı otomasyon dalını yeniden yazmış olabilir. Branch head'i bir kez
+        # okuyup aynı imzalı commit'i güncel uçtan tekrar dene.
+        hata_metni = "; ".join(h.get("message", "") for h in yanit.get("errors", []))
+        if "expected" in hata_metni.lower() or "head" in hata_metni.lower():
+            girdi["expectedHeadOid"] = dal_head()
+            kod, yanit = istek("POST", GRAPHQL, {"query": sorgu, "variables": {"girdi": girdi}})
+            commit = ((yanit.get("data") or {}).get("createCommitOnBranch") or {}).get("commit")
     if kod != 200 or not commit:
         hatalar = "; ".join(h.get("message", "") for h in yanit.get("errors", [])) or yanit.get("message", "")
         sys.exit(f"::error::İmzalı commit yazılamadı (HTTP {kod}): {hatalar}")
@@ -159,7 +176,7 @@ def main() -> None:
         parca.append(yol)
         boyut += b
     parcalar.append(parca)
-    ucu = taban
+    ucu = dal_head()
     for no, p in enumerate(parcalar, 1):
         baslik = MESAJ if len(parcalar) == 1 else f"{MESAJ} ({no}/{len(parcalar)})"
         ucu = commit_at(ucu, p, silinen if no == 1 else [], baslik)

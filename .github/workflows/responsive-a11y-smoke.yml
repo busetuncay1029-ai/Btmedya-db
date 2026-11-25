@@ -21,7 +21,10 @@ permissions:
 jobs:
   smoke:
     name: 3 viewport live UX smoke
-    runs-on: ubuntu-latest
+    # Playwright 1.55 cannot install Chromium dependencies on the currently
+    # advertised ubuntu-latest image (Ubuntu 26.04). Keep this free smoke job
+    # on the supported GitHub-hosted Ubuntu image until Playwright adds support.
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v7
