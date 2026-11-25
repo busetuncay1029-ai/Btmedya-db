@@ -3,6 +3,16 @@ name: BTMEDYA Production Verify
 on:
   # Production deploy is handled by Cloudflare Workers Builds on main.
   # This workflow remains available for explicit/manual production verification.
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "public/**"
+      - "migrations/**"
+      - "wrangler.toml"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
 permissions:
@@ -15,6 +25,36 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  deploy:
+    if: ${{ github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    name: Deploy Worker to Cloudflare
+    concurrency:
+      group: btmedya-production-deploy
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - name: Cloudflare token seç
+        uses: ./.github/actions/cf-token-sec
+        with:
+          gerek: workers
+          zorunlu: "true"
+          cloudflare_deploy_token: ${{ secrets.CLOUDFLARE_DEPLOY_TOKEN }}
+          cloudflare_api_token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          btmedya_db1: ${{ secrets.BTMEDYA_DB1 }}
+          btmedya_d1: ${{ secrets.BTMEDYA_D1 }}
+          cloudflare_d1_api_token: ${{ secrets.CLOUDFLARE_D1_API_TOKEN }}
+      - name: Deploy production Worker and assets
+        env:
+          CLOUDFLARE_ACCOUNT_ID: b239acae17aebe894ea76309fe32cdce
+        run: npx wrangler@4.142.0 deploy --config wrangler.toml
+
   verify:
     runs-on: ubuntu-latest
     name: Verify source and production chain
